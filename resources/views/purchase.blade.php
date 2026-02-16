@@ -681,7 +681,7 @@
                             <i class="fas fa-chevron-right text-slate-500"></i>
                         </a>
 
-                        <a href="{{ route('payment.paypal') }}" class="payment-method" onclick="setPaymentMethod('paypal')">
+                        <!--a href="{{ route('payment.paypal') }}" class="payment-method" onclick="setPaymentMethod('paypal')">
                             <div class="payment-method-icon bg-yellow-500/10 text-yellow-500">
                                 <i class="fab fa-paypal"></i>
                             </div>
@@ -690,7 +690,7 @@
                                 <div class="payment-method-desc">Payer en toute sécurité avec votre compte PayPal</div>
                             </div>
                             <i class="fas fa-chevron-right text-slate-500"></i>
-                        </a>
+                        </!--a-->
                     </div>
 
                     <input type="hidden" name="payment_method" id="payment_method" value="">
