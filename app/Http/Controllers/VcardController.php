@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
-class VcardController extends Controller
+class VCardController extends Controller
 {
     public function show($slug)
     {
