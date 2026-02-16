@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>vCard Elite - La Carte de Visite Nouvelle Génération</title>
+     <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <title>DIGITCARD Elite - La Carte de Visite Nouvelle Génération</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -154,11 +156,11 @@
             50% { transform: translateY(-30px) rotateX(8deg) rotateY(5deg) rotateZ(-1deg); }
         }
 
-        /* --- Recreating the vCard inside Phone --- */
+        /* --- Recreating the DIGITCARD inside Phone --- */
         .phone-screen {
             width: 100%;
             height: 100%;
-            background: #0f172a; /* Same as vCard bg */
+            background: #0f172a; /* Same as DIGITCARD bg */
             overflow-y: auto;
             position: relative;
             padding: 0;
@@ -174,13 +176,13 @@
             z-index: 10;
         }
 
-        .vcard-preview-header {
+        .DIGITCARD-preview-header {
             height: 120px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             position: relative;
         }
 
-        .vcard-preview-card {
+        .DIGITCARD-preview-card {
             margin: -60px 15px 0;
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(10px);
@@ -292,7 +294,7 @@
     <nav>
         <div class="logo-box">
             <div class="logo-square"></div>
-            <span class="font-outfit">VCARD ELITE</span>
+            <span class="font-outfit">DIGITCARD ELITE</span>
         </div>
         <div>
             <a href="{{ route('admin.login.page') }}" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Client Space</a>
@@ -311,10 +313,10 @@
             </div>
             <h1 class="font-outfit">L'élégance du <br><span class="text-indigo-500">networking</span> digital.</h1>
             <p>
-                Propulsez votre identité professionnelle dans une nouvelle dimension. Une vCard intelligente, design et ultra-rapide pour convertir chaque rencontre en opportunité.
+                Propulsez votre identité professionnelle dans une nouvelle dimension. Une DIGITCARD intelligente, design et ultra-rapide pour convertir chaque rencontre en opportunité.
             </p>
             <div class="flex flex-wrap gap-4">
-                <a href="#" class="btn-primary">
+                <a href="{{ route('purchase') }}" class="btn-primary">
                     Démarrer maintenant <i class="fas fa-arrow-right text-xs"></i>
                 </a>
                 <a href="#features" class="px-8 py-4 rounded-xl border border-white/5 font-bold text-sm hover:bg-white/5 transition-all">
@@ -329,9 +331,9 @@
                 <div class="phone-screen">
                     <div class="phone-island"></div>
                     
-                    <!-- Inside Phone: vCard Design -->
-                    <div class="vcard-preview-header"></div>
-                    <div class="vcard-preview-card">
+                    <!-- Inside Phone: DIGITCARD Design -->
+                    <div class="DIGITCARD-preview-header"></div>
+                    <div class="DIGITCARD-preview-card">
                         <div class="preview-avatar">JS</div>
                         <h2 class="text-white font-bold text-sm font-outfit">Jean Stevens</h2>
                         <p class="text-[10px] text-slate-400">Directeur Stratégie</p>
@@ -403,7 +405,7 @@
         <div class="max-w-4xl mx-auto flex flex-col items-center gap-8">
             <div class="logo-box opacity-30 scale-75">
                 <div class="logo-square"></div>
-                <span>VCARD ELITE SYSTEM</span>
+                <span>DIGITCARD ELITE SYSTEM</span>
             </div>
             
             <p class="text-slate-500 text-sm max-w-lg">
