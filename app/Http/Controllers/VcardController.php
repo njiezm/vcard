@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
-class VCardController  extends Controller
+class VcardController extends Controller
 {
     public function show($slug)
     {
@@ -14,11 +14,6 @@ class VCardController  extends Controller
             ->firstOrFail();
 
         // Increment views
-        // comentiare
-
-        // comentiar encore 
-
-        //test
         $customer->incrementViews();
 
         return view('vcard.show', compact('customer'));
