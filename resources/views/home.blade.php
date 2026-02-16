@@ -58,7 +58,7 @@
 
         /* Navigation */
         nav {
-            padding: 24px 40px;
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -71,7 +71,7 @@
             align-items: center;
             gap: 12px;
             font-weight: 800;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             letter-spacing: -0.04em;
         }
 
@@ -84,7 +84,7 @@
 
         /* Hero Section */
         .hero {
-            padding: 100px 40px;
+            padding: 60px 24px;
             max-width: 1300px;
             margin: 0 auto;
             display: grid;
@@ -103,7 +103,7 @@
 
         .hero-content p {
             color: var(--text-secondary);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 1.6;
             margin-bottom: 40px;
             max-width: 580px;
@@ -231,7 +231,7 @@
 
         /* Features Section */
         .features {
-            padding: 80px 40px;
+            padding: 80px 24px;
             max-width: 1300px;
             margin: 0 auto;
             display: grid;
@@ -256,7 +256,7 @@
         /* Footer */
         footer {
             border-top: 1px solid var(--obsidian-border);
-            padding: 80px 40px;
+            padding: 60px 24px;
             text-align: center;
         }
 
@@ -279,10 +279,136 @@
             background: var(--primary-glow);
         }
 
+        /* Media Queries for Tablets */
         @media (max-width: 1024px) {
-            .hero { grid-template-columns: 1fr; text-align: center; }
-            .hero-content { display: flex; flex-direction: column; align-items: center; order: 2; }
-            .phone-container { order: 1; margin-bottom: 60px; }
+            .hero { 
+                grid-template-columns: 1fr; 
+                text-align: center; 
+                gap: 40px;
+            }
+            .hero-content { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                order: 2; 
+            }
+            .phone-container { 
+                order: 1; 
+                margin-bottom: 40px; 
+            }
+            .phone-mockup {
+                width: 280px;
+                height: 570px;
+            }
+        }
+
+        /* Media Queries for Mobile Devices */
+        @media (max-width: 768px) {
+            nav {
+                padding: 16px 20px;
+            }
+            
+            .logo-box {
+                font-size: 1rem;
+            }
+            
+            .logo-square {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .hero {
+                padding: 40px 20px;
+                gap: 30px;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .hero-content p {
+                font-size: 1rem;
+                margin-bottom: 30px;
+            }
+            
+            .btn-primary {
+                padding: 14px 28px;
+                font-size: 0.9rem;
+            }
+            
+            .phone-mockup {
+                width: 240px;
+                height: 490px;
+                border-radius: 36px;
+                border: 8px solid #1a1a1a;
+            }
+            
+            .features {
+                padding: 60px 20px;
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .feature-card {
+                padding: 32px 24px;
+                border-radius: 24px;
+            }
+            
+            .feature-card h3 {
+                font-size: 1.1rem;
+            }
+            
+            .feature-card p {
+                font-size: 0.9rem;
+            }
+            
+            footer {
+                padding: 40px 20px;
+            }
+            
+            .logo-box.opacity-30 {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Media Queries for Small Mobile Devices */
+        @media (max-width: 480px) {
+            .hero {
+                padding: 30px 16px;
+            }
+            
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-content p {
+                font-size: 0.95rem;
+            }
+            
+            .btn-primary {
+                padding: 12px 24px;
+                font-size: 0.85rem;
+            }
+            
+            .phone-mockup {
+                width: 200px;
+                height: 408px;
+                border-radius: 30px;
+                border: 6px solid #1a1a1a;
+            }
+            
+            .features {
+                padding: 40px 16px;
+            }
+            
+            .feature-card {
+                padding: 24px 20px;
+            }
+            
+            footer {
+                padding: 30px 16px;
+            }
         }
     </style>
 </head>
@@ -297,7 +423,6 @@
             <span class="font-outfit">DIGITCARD ELITE</span>
         </div>
         <div>
-            <a href="{{ route('admin.login.page') }}" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Client Space</a>
         </div>
     </nav>
 
@@ -315,7 +440,7 @@
             <p>
                 Propulsez votre identité professionnelle dans une nouvelle dimension. Une DIGITCARD intelligente, design et ultra-rapide pour convertir chaque rencontre en opportunité.
             </p>
-            <div class="flex flex-wrap gap-4">
+            <div class="flex flex-wrap gap-4 justify-center">
                 <a href="{{ route('purchase') }}" class="btn-primary">
                     Démarrer maintenant <i class="fas fa-arrow-right text-xs"></i>
                 </a>
@@ -377,7 +502,7 @@
             </div>
             <h3 class="text-xl font-bold mb-4">Transmission Instantanée</h3>
             <p class="text-slate-500 text-sm leading-relaxed">
-                QR Code haute résolution et technologie NFC. Vos contacts enregistrent vos coordonnées en une seconde, sans application.
+                QR Code haute résolution. Vos contacts enregistrent vos coordonnées en une seconde, sans application.
             </p>
         </div>
         <div class="feature-card">

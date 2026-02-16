@@ -122,6 +122,8 @@ Route::post('/paypal/capture', [PurchaseController::class, 'capturePayPalOrder']
 
 // Page de succès générique
 Route::get('/purchase/success', [PurchaseController::class, 'showSuccess'])->name('purchase.success');
+// Route pour traiter le formulaire d'achat
+Route::post('/purchase/process', [PurchaseController::class, 'processPurchase'])->name('purchase.process');
 
 // -----------------
 // Routes VCard Public

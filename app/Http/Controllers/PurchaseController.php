@@ -16,22 +16,73 @@ class PurchaseController extends Controller
      */
     public function show()
     {
-        // Définir les prix par devise pour éviter les erreurs "Undefined array key"
+        // Prix pour chaque devise
         $prices = [
             'EUR' => 29.99,
             'USD' => 32.99,
-            'GBP' => 25.99,
-            'CHF' => 30.99,
-            'CAD' => 41.99,
+            'GBP' => 24.99,
+            'CHF' => 28.99,
+            'CAD' => 39.99
         ];
 
-        // Simuler une commande pour la référence
-        $order = [
-            'id' => 'ORD-' . strtoupper(uniqid()),
-            'email' => Session::get('user_email', 'client@digitcard.com'),
-        ];
+        return view('purchase', compact('prices'));
+    }
 
-        return view('purchase', compact('prices', 'order'));
+    /**
+     * Traite le formulaire d'achat et redirige vers la méthode de paiement choisie
+     */
+    public function processPurchase(Request $request)
+    {
+        // Validation des données
+        $validator = Validator::make($request->all(), [
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'currency' => 'required|string|in:EUR,USD,GBP,CHF,CAD',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:bank_transfer,sumup,paypal'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Créer une commande en statut "pending"
+        $order = Order::create([
+            'order_id' => 'ORD-' . strtoupper(Str::random(10)),
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
+            'email' => $request->email,
+            'amount' => $request->amount,
+            'currency' => $request->currency,
+            'payment_method' => $request->payment_method,
+            'status' => 'pending',
+            'payment_details' => [
+                'created_at' => now()->toISOString(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]
+        ]);
+
+        // Stocker l'ID de commande en session pour le suivi
+        Session::put('order_id', $order->order_id);
+
+        // Rediriger vers la méthode de paiement appropriée
+        switch ($request->payment_method) {
+            case 'bank_transfer':
+                return redirect()->route('payment.bank_transfer');
+            
+            case 'sumup':
+                return redirect()->route('payment.sumup');
+            
+            case 'paypal':
+                return redirect()->route('payment.paypal');
+            
+            default:
+                return redirect()->back()->with('error', 'Méthode de paiement non valide');
+        }
     }
 
     /**
