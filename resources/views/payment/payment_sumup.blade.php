@@ -150,8 +150,7 @@ const statusDiv = document.getElementById('sumup-status');
 let isProcessing = false;
 
 button.addEventListener('click', async () => {
-
-    if (isProcessing) return; // anti double click
+    if (isProcessing) return;
     isProcessing = true;
 
     button.disabled = true;
@@ -159,7 +158,7 @@ button.addEventListener('click', async () => {
     statusDiv.textContent = "";
 
     try {
-
+        // 1️⃣ Créer le checkout côté serveur
         const response = await fetch("{{ route('payment.sumup.create') }}", {
             method: 'GET',
             headers: {
@@ -172,51 +171,70 @@ button.addEventListener('click', async () => {
         if (!response.ok) throw new Error("Erreur serveur");
 
         const data = await response.json();
-
         if (!data.checkout_id) throw new Error("Checkout invalide");
 
         loader.style.display = "none";
 
+        // 2️⃣ Monter le widget SumUp
         SumUpCard.mount({
             id: 'sumup-card-button',
             checkoutId: data.checkout_id,
             showInstallments: false,
-            onResponse: function (type, body) {
+            onResponse: function(type, body) {
 
-               if (type === 'success') {
-    loader.style.display = "flex";
-    statusDiv.textContent = "Vérification du paiement…";
+                if(type === 'success') {
+                    loader.style.display = "flex";
+                    statusDiv.textContent = "Vérification du paiement…";
 
-    // Appel au serveur pour confirmer le paiement
-    fetch("{{ route('payment.sumup.confirm') }}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': "{{ csrf_token() }}",
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(res => {
-        if(res.status === 'success'){
-            window.location.href = "{{ route('purchase.success') }}";
-        } else {
-            loader.style.display = "none";
-            statusDiv.textContent = "Paiement non confirmé. Réessayez.";
-            button.disabled = false;
-            isProcessing = false;
-        }
-    })
-    .catch(err => {
-        console.error(err);
+                    // 3️⃣ Confirmer le paiement côté serveur
+                    fetch("{{ route('payment.sumup.confirm') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({}) // pas besoin de données supplémentaires
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if(res.status === 'success'){
+                            window.location.href = "{{ route('purchase.success') }}";
+                        } else {
+                            loader.style.display = "none";
+                            statusDiv.textContent = "Paiement non confirmé. Réessayez.";
+                            button.disabled = false;
+                            isProcessing = false;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        loader.style.display = "none";
+                        statusDiv.textContent = "Erreur serveur lors de la vérification du paiement.";
+                        button.disabled = false;
+                        isProcessing = false;
+                    });
+                }
+
+                if(type === 'error') {
+                    statusDiv.textContent = "Erreur de paiement. Réessayez.";
+                    button.disabled = false;
+                    isProcessing = false;
+                }
+
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
         loader.style.display = "none";
-        statusDiv.textContent = "Erreur serveur lors de la vérification du paiement.";
+        statusDiv.textContent = "Impossible d'initialiser le paiement.";
         button.disabled = false;
         isProcessing = false;
-    });
-}
-
+    }
+});
 </script>
+
 
 </body>
 </html>
