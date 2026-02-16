@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ $customer->firstname }} {{ $customer->lastname }} - vCard</title>
+
+    <!-- Description SEO -->
+    <meta name="description" content="Découvrez le profil professionnel de {{ $customer->firstname }} {{ $customer->lastname }}. Accédez à ses contacts et réseaux sociaux facilement.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <!-- Optionnel: icônes Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-180.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('favicon-152.png') }}">
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
