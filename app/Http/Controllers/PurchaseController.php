@@ -182,26 +182,47 @@ class PurchaseController extends Controller
     /**
      * Confirme le paiement après le succès sur SumUp.
      */
-    public function confirmSumUpPayment(Request $request)
-    {
-        $checkoutReference = session('sumup_checkout_reference');
+   public function confirmSumUpPayment(Request $request)
+{
+    $checkoutReference = session('sumup_checkout_reference');
 
-        if (!$checkoutReference) {
-            return response()->json(['error' => 'Session de paiement invalide.'], 400);
-        }
-
-        // Ici, vous devriez vérifier le statut du paiement auprès de SumUp
-        // avec la référence pour être 100% sûr.
-        // Pour cet exemple, nous considérons que le paiement est réussi.
-
-        // Logique métier : Créer la commande, envoyer un email, etc.
-        Log::info("Paiement SumUp confirmé pour la référence : " . $checkoutReference);
-
-        // Nettoyer la session
-        session()->forget('sumup_checkout_reference');
-
-        return response()->json(['message' => 'Paiement confirmé avec succès.']);
+    if (!$checkoutReference) {
+        return response()->json(['error' => 'Session de paiement invalide.'], 400);
     }
+
+    // Vérifier le paiement via l'API SumUp
+    try {
+        $response = Http::withToken(config('sumup.api_key'))
+            ->get(config('sumup.checkout_url') . '/' . $checkoutReference);
+
+        $data = $response->json();
+
+        if(isset($data['status']) && $data['status'] === 'processed') {
+            // Paiement réussi
+            $orderId = Session::get('order_id');
+            $order = Order::where('order_id', $orderId)->first();
+
+            if($order){
+                $order->status = 'paid';
+                $order->payment_details = array_merge($order->payment_details ?? [], [
+                    'sumup_response' => $data,
+                    'paid_at' => now()->toISOString()
+                ]);
+                $order->save();
+            }
+
+            session()->forget('sumup_checkout_reference');
+
+            return response()->json(['status' => 'success']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Paiement non confirmé'], 400);
+        }
+    } catch (\Exception $e) {
+        Log::error('Erreur confirmation paiement SumUp : '.$e->getMessage());
+        return response()->json(['error' => 'Impossible de vérifier le paiement'], 500);
+    }
+}
+
 
     private function getPayPalAccessToken()
 {

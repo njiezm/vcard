@@ -183,28 +183,39 @@ button.addEventListener('click', async () => {
             showInstallments: false,
             onResponse: function (type, body) {
 
-                if (type === 'success') {
-                    loader.style.display = "flex";
-                    statusDiv.textContent = "Paiement validé. Redirection…";
-                    window.location.href = "{{ route('purchase.success') }}";
-                }
+               if (type === 'success') {
+    loader.style.display = "flex";
+    statusDiv.textContent = "Vérification du paiement…";
 
-                if (type === 'error') {
-                    statusDiv.textContent = "Erreur de paiement. Réessayez.";
-                    button.disabled = false;
-                    isProcessing = false;
-                }
-            }
-        });
-
-    } catch (error) {
-        console.error(error);
+    // Appel au serveur pour confirmer le paiement
+    fetch("{{ route('payment.sumup.confirm') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.status === 'success'){
+            window.location.href = "{{ route('purchase.success') }}";
+        } else {
+            loader.style.display = "none";
+            statusDiv.textContent = "Paiement non confirmé. Réessayez.";
+            button.disabled = false;
+            isProcessing = false;
+        }
+    })
+    .catch(err => {
+        console.error(err);
         loader.style.display = "none";
-        statusDiv.textContent = "Impossible d'initialiser le paiement.";
+        statusDiv.textContent = "Erreur serveur lors de la vérification du paiement.";
         button.disabled = false;
         isProcessing = false;
-    }
-});
+    });
+}
+
 </script>
 
 </body>
