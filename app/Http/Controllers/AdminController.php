@@ -351,7 +351,7 @@ class AdminController extends Controller
             'password' => 'required|string',
         ]);
 
-        if ($request->email === 'admin@example.com' && $request->password === 'secret123') {
+        if ($request->email === 'contact@njiezm.fr' && $request->password === 'secret123') {
             session(['admin_auth' => true]);
             return redirect()->route('admin.index');
         }

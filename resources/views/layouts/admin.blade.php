@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    
     <!-- SEO Meta Tags -->
     <title>@yield('title', 'Tableau de bord') | Administration VCard</title>
     <meta name="description" content="@yield('description', 'Tableau de bord d\'administration pour la gestion des cartes VCard')">
@@ -224,6 +223,8 @@
             .sidebar.show { left: 0; }
             .main-wrapper { margin-left: 0; }
         }
+
+        
     </style>
 </head>
 <body class="h-100 @if(request()->cookie('theme') === 'dark') dark-theme @endif">

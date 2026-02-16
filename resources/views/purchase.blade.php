@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Acheter DIGITCARD Elite</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -527,6 +528,42 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Loading State */
+.loading {
+    pointer-events: none;
+    opacity: 0.7;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    z-index: 11;
+}
     </style>
 </head>
 <body>
@@ -612,6 +649,11 @@
                 
                 <form id="purchaseForm" action="{{ route('purchase.process') }}" method="POST">
                     @csrf
+
+                    @csrf
+                    <input type="hidden" id="payment_method" name="payment_method">
+                    <input type="hidden" id="currency" name="currency" value="EUR">
+                    <input type="hidden" id="amount" name="amount" value="29.99">
                     
                     <!-- User Information -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -656,55 +698,32 @@
                     </div>
 
                     <!-- Payment Methods -->
-                    <div class="form-group">
-                        <label class="form-label">Méthode de paiement</label>
-                        
-                        <a href="{{ route('payment.bank_transfer') }}" class="payment-method" onclick="setPaymentMethod('bank_transfer')">
-                            <div class="payment-method-icon bg-blue-500/10 text-blue-500">
-                                <i class="fas fa-university"></i>
-                            </div>
-                            <div class="payment-method-content">
-                                <div class="payment-method-title">Virement bancaire</div>
-                                <div class="payment-method-desc">Paiement sécurisé via votre banque (2-3 jours ouvrés)</div>
-                            </div>
-                            <i class="fas fa-chevron-right text-slate-500"></i>
-                        </a>
+                    <!-- Payment Methods -->
+<div class="form-group">
+    <label class="form-label">Méthode de paiement</label>
+    
+    <div class="payment-method" onclick="submitFormAndRedirect('bank_transfer')">
+        <div class="payment-method-icon bg-blue-500/10 text-blue-500">
+            <i class="fas fa-university"></i>
+        </div>
+        <div class="payment-method-content">
+            <div class="payment-method-title">Virement bancaire</div>
+            <div class="payment-method-desc">Paiement sécurisé via votre banque (2-3 jours ouvrés)</div>
+        </div>
+        <i class="fas fa-chevron-right text-slate-500"></i>
+    </div>
 
-                        <a href="{{ route('payment.sumup') }}" class="payment-method" onclick="setPaymentMethod('sumup')">
-                            <div class="payment-method-icon bg-purple-500/10 text-purple-500">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="payment-method-content">
-                                <div class="payment-method-title">Carte bancaire</div>
-                                <div class="payment-method-desc">Paiement immédiat et sécurisé via SumUp</div>
-                            </div>
-                            <i class="fas fa-chevron-right text-slate-500"></i>
-                        </a>
-
-                        <!--a href="{{ route('payment.paypal') }}" class="payment-method" onclick="setPaymentMethod('paypal')">
-                            <div class="payment-method-icon bg-yellow-500/10 text-yellow-500">
-                                <i class="fab fa-paypal"></i>
-                            </div>
-                            <div class="payment-method-content">
-                                <div class="payment-method-title">PayPal</div>
-                                <div class="payment-method-desc">Payer en toute sécurité avec votre compte PayPal</div>
-                            </div>
-                            <i class="fas fa-chevron-right text-slate-500"></i>
-                        </!--a-->
-                    </div>
-
-                    <input type="hidden" name="payment_method" id="payment_method" value="">
-                    <input type="hidden" name="currency" id="currency" value="EUR">
-                    <input type="hidden" name="amount" id="amount" value="29.99">
-                </form>
-
-                <div class="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <div class="flex items-center gap-2 text-green-500 text-sm">
-                        <i class="fas fa-lock"></i>
-                        <span>Paiement 100% sécurisé et crypté</span>
-                    </div>
-                </div>
-            </div>
+    <div class="payment-method" onclick="submitFormAndRedirect('sumup')">
+        <div class="payment-method-icon bg-purple-500/10 text-purple-500">
+            <i class="fas fa-credit-card"></i>
+        </div>
+        <div class="payment-method-content">
+            <div class="payment-method-title">Carte bancaire</div>
+            <div class="payment-method-desc">Paiement immédiat et sécurisé via SumUp</div>
+        </div>
+        <i class="fas fa-chevron-right text-slate-500"></i>
+    </div>
+</div>
         </div>
     </div>
 
@@ -778,17 +797,68 @@
         }
 
         // Payment method selection
-        function setPaymentMethod(method) {
-            document.getElementById('payment_method').value = method;
-            
-            // Store form data in session storage before redirect
-            const formData = new FormData(form);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-            sessionStorage.setItem('purchaseFormData', JSON.stringify(data));
+        // Payment method selection and form submission
+function submitFormAndRedirect(method) {
+    // Set payment method
+    document.getElementById('payment_method').value = method;
+    
+    // Validate form before submission
+    let isValid = true;
+    const inputs = form.querySelectorAll('.form-input[required]');
+    
+    inputs.forEach(input => {
+        if (!validateInput(input)) {
+            isValid = false;
         }
+    });
+    
+    if (!isValid) {
+        // Scroll to first error
+        const firstError = form.querySelector('.form-input.error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+    
+    // Show loading state
+    const formCard = document.querySelector('.form-card');
+    formCard.classList.add('loading');
+    
+    // Submit form via AJAX
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Store order ID in session
+            sessionStorage.setItem('order_id', data.order_id);
+            
+            // Redirect to appropriate payment method
+            if (method === 'bank_transfer') {
+                window.location.href = "{{ route('payment.bank_transfer') }}";
+            } else if (method === 'sumup') {
+                window.location.href = "{{ route('payment.sumup') }}";
+            } else if (method === 'paypal') {
+                window.location.href = "{{ route('payment.paypal') }}";
+            }
+        } else {
+            // Show error message
+            alert('Une erreur est survenue. Veuillez réessayer.');
+            formCard.classList.remove('loading');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue. Veuillez réessayer.');
+        formCard.classList.remove('loading');
+    });
+}
 
         // Restore form data on page load
         window.addEventListener('DOMContentLoaded', function() {

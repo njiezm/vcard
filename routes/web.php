@@ -48,26 +48,29 @@ Route::prefix('admin190919642025')->group(function () {
 
     Route::delete('/orders/{order}', [AdminController::class, 'deleteOrder'])
         ->name('admin.orders.delete');
-        Route::get('/orders/{order}', [AdminController::class, 'showOrder'])
-    ->name('admin.orders.show');
+        
+    Route::get('/orders/{order}', [AdminController::class, 'showOrder'])
+        ->name('admin.orders.show');
 
-Route::post('/orders/{order}/send-invoice', [AdminController::class, 'sendInvoice'])
-    ->name('admin.orders.send-invoice');
-Route::get('/orders/{order}/download-invoice', [AdminController::class, 'downloadInvoice'])
-    ->name('admin.orders.download-invoice');
-Route::post('/orders/bulk-update-status', [AdminController::class, 'bulkUpdateStatus'])
-    ->name('admin.orders.bulk-update-status');
-Route::post('/orders/bulk-create-customers', [AdminController::class, 'bulkCreateCustomers'])
-    ->name('admin.orders.bulk-create-customers');
+    Route::post('/orders/{order}/send-invoice', [AdminController::class, 'sendInvoice'])
+        ->name('admin.orders.send-invoice');
+        
+    Route::get('/orders/{order}/download-invoice', [AdminController::class, 'downloadInvoice'])
+        ->name('admin.orders.download-invoice');
+        
+    Route::post('/orders/bulk-update-status', [AdminController::class, 'bulkUpdateStatus'])
+        ->name('admin.orders.bulk-update-status');
+        
+    Route::post('/orders/bulk-create-customers', [AdminController::class, 'bulkCreateCustomers'])
+        ->name('admin.orders.bulk-create-customers');
 
-Route::delete('/orders/bulk-delete', [AdminController::class, 'bulkDelete'])
-    ->name('admin.orders.bulk-delete');
-
+    Route::delete('/orders/bulk-delete', [AdminController::class, 'bulkDelete'])
+        ->name('admin.orders.bulk-delete');
 
     Route::get('/orders/{order}/edit', [AdminController::class, 'editO'])
-    ->name('admin.orders.edit');
-        Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('admin.orders.export');
-
+        ->name('admin.orders.edit');
+        
+    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('admin.orders.export');
 
     // ===== ROUTES CLIENTS =====
     Route::get('/create', function () {

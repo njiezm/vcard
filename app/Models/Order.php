@@ -28,15 +28,34 @@ class Order extends Model
         'updated_at' => 'datetime',
     ];
 
+    // Statuts possibles pour une commande
+    const STATUS_PENDING = 'pending';
+    const STATUS_AWAITING_PAYMENT = 'awaiting_payment';
+    const STATUS_PAID = 'paid';
+    const STATUS_PROCESSING = 'processing';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+    const STATUS_REFUNDED = 'refunded';
+
     // Scopes pour faciliter les requêtes
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeAwaitingPayment($query)
+    {
+        return $query->where('status', self::STATUS_AWAITING_PAYMENT);
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', self::STATUS_PAID);
     }
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', self::STATUS_COMPLETED);
     }
 
     public function scopeByPaymentMethod($query, $method)
@@ -53,5 +72,20 @@ class Order extends Model
     public function getFormattedAmountAttribute()
     {
         return number_format($this->amount, 2) . ' ' . $this->currency;
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        $statusLabels = [
+            self::STATUS_PENDING => 'En attente',
+            self::STATUS_AWAITING_PAYMENT => 'En attente de paiement',
+            self::STATUS_PAID => 'Payé',
+            self::STATUS_PROCESSING => 'En traitement',
+            self::STATUS_COMPLETED => 'Terminé',
+            self::STATUS_CANCELLED => 'Annulé',
+            self::STATUS_REFUNDED => 'Remboursé',
+        ];
+
+        return $statusLabels[$this->status] ?? $this->status;
     }
 }
