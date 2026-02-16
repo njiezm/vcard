@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 
 
 class PurchaseController extends Controller
@@ -32,59 +33,54 @@ class PurchaseController extends Controller
      * Traite le formulaire d'achat et redirige vers la méthode de paiement choisie
      */
     public function processPurchase(Request $request)
-    {
-        // Validation des données
-        $validator = Validator::make($request->all(), [
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'currency' => 'required|string|in:EUR,USD,GBP,CHF,CAD',
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string|in:bank_transfer,sumup,paypal'
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'firstname' => 'required|string|max:255',
+        'lastname' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'currency' => 'required|string|in:EUR,USD,GBP,CHF,CAD',
+        'amount' => 'required|numeric|min:0',
+        'payment_method' => 'required|string|in:bank_transfer,sumup,paypal'
+    ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        // Créer une commande en statut "pending"
-        $order = Order::create([
-            'order_id' => 'ORD-' . strtoupper(Str::random(10)),
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'email' => $request->email,
-            'amount' => $request->amount,
-            'currency' => $request->currency,
-            'payment_method' => $request->payment_method,
-            'status' => 'pending',
-            'payment_details' => [
-                'created_at' => now()->toISOString(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]
-        ]);
-
-        // Stocker l'ID de commande en session pour le suivi
-        Session::put('order_id', $order->order_id);
-
-        // Rediriger vers la méthode de paiement appropriée
-        switch ($request->payment_method) {
-            case 'bank_transfer':
-                return redirect()->route('payment.bank_transfer');
-            
-            case 'sumup':
-                return redirect()->route('payment.sumup');
-            
-            case 'paypal':
-                return redirect()->route('payment.paypal');
-            
-            default:
-                return redirect()->back()->with('error', 'Méthode de paiement non valide');
-        }
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
     }
 
+    // Créer une commande en statut "pending"
+    $order = \App\Models\Order::create([
+        'order_id' => 'ORD-' . strtoupper(Str::random(10)),
+        'firstname' => $request->firstname,
+        'lastname' => $request->lastname,
+        'email' => $request->email,
+        'amount' => $request->amount,
+        'currency' => $request->currency,
+        'payment_method' => $request->payment_method,
+        'status' => 'pending',
+        'payment_details' => [
+            'created_at' => now()->toISOString(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent()
+        ]
+    ]);
+
+    // Stocker l'ID de commande en session
+    Session::put('order_id', $order->order_id);
+
+    // Rediriger vers la méthode de paiement
+    switch ($request->payment_method) {
+        case 'bank_transfer':
+            return redirect()->route('payment.bank_transfer');
+        case 'sumup':
+            return redirect()->route('payment.sumup');
+        case 'paypal':
+            return redirect()->route('payment.paypal');
+        default:
+            return redirect()->back()->with('error', 'Méthode de paiement non valide');
+    }
+}
     /**
      * Affiche la page d'instructions pour le virement bancaire.
      */

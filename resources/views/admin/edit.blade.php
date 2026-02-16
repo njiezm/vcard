@@ -1,332 +1,448 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier un client - vCard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+@extends('layouts.admin')
+
+@section('title', 'Creer des Clients - Phoenix Admin')
+
+@push('styles')
     <style>
-        :root {
-            --sidebar-width: 250px;
-            --sidebar-bg: #1e3a8a;
-            --sidebar-hover: #1e40af;
-            --topbar-bg: #f8fafc;
-            --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            --primary-color: #3b82f6;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: #f1f5f9;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #1e40af 100%);
-            z-index: 1000;
-            transition: all 0.3s;
-            box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-brand {
-            color: white;
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-
-        .sidebar-item {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-item:hover {
-            background-color: var(--sidebar-hover);
-            color: white;
-            border-left-color: #60a5fa;
-        }
-
-        .sidebar-item.active {
-            background-color: var(--sidebar-hover);
-            color: white;
-            border-left-color: #60a5fa;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: all 0.3s;
-        }
-
-        /* Topbar */
-        .topbar {
-            background-color: var(--topbar-bg);
-            padding: 1rem 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .breadcrumb-phoenix {
-            background: transparent;
-            padding: 0;
-            margin: 0;
-        }
-
-        .breadcrumb-phoenix .breadcrumb-item {
-            color: #64748b;
-        }
-
-        .breadcrumb-phoenix .breadcrumb-item.active {
-            color: #1e293b;
-        }
-
-        /* Content */
-        .content {
-            padding: 2rem;
-        }
-
-        /* Form Card */
-        .form-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-        }
-
-        .form-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        }
-
-        .form-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-subtitle {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .form-body {
-            padding: 2rem;
-        }
-
-        /* Photo Upload */
-        .photo-upload-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .photo-preview {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
+        /* Styles spécifiques à la page clients */
+        .customer-avatar {
             object-fit: cover;
-            border: 4px solid #f1f5f9;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
         }
 
-        .photo-placeholder {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+        .customer-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .customer-info {
+            min-width: 0;
+        }
+
+        .status-badge {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .copy-btn {
+            padding: 0.25rem 0.375rem;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--phoenix-primary);
             color: white;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* Form Controls */
-        .form-label-phoenix {
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
+        .copy-btn.copied {
+            background-color: var(--phoenix-success);
+            color: white;
         }
 
-        .form-control-phoenix {
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            transition: all 0.2s;
-        }
-
-        .form-control-phoenix:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        /* Buttons */
-        .btn-phoenix {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            border: none;
+        .filter-chip {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .btn-phoenix-primary {
-            background-color: var(--primary-color);
+        .filter-chip:hover {
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .filter-chip.active {
+            background-color: var(--phoenix-primary);
             color: white;
+            border-color: var(--phoenix-primary);
         }
 
-        .btn-phoenix-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        .search-wrapper {
+            position: relative;
         }
 
-        .btn-phoenix-secondary {
-            background-color: #6b7280;
-            color: white;
+        .search-input {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
         }
 
-        .btn-phoenix-secondary:hover {
-            background-color: #4b5563;
-            transform: translateY(-1px);
-        }
-
-        .btn-phoenix-danger {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .btn-phoenix-danger:hover {
-            background-color: #dc2626;
-            transform: translateY(-1px);
-        }
-
-        /* Mobile Toggle */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: white;
+        .search-wrapper .input-group-text {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: transparent;
             border: none;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            box-shadow: var(--card-shadow);
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
+        #clearSearch {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: transparent;
+            border: none;
+        }
 
-            .sidebar.active {
+        .table-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            overflow: hidden;
+        }
+
+        .customers-table {
+            margin-bottom: 0;
+        }
+
+        .customers-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+            white-space: nowrap;
+        }
+
+        .customers-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .customers-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 1.5rem !important;
+        }
+
+        .sortable:hover {
+            background-color: #e9ecef;
+        }
+
+        .sortable i {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .sortable.sorted-asc i,
+        .sortable.sorted-desc i {
+            opacity: 1;
+            color: var(--phoenix-primary);
+        }
+
+        .empty-state {
+            padding: 3rem 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        }
+
+        .stat-card-body {
+            padding: 1.5rem;
+        }
+
+        .stat-card-title {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .stat-card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .animate-slideInLeft {
+            animation: slideInLeft 0.3s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
                 transform: translateX(0);
             }
+        }
 
-            .main-content {
-                margin-left: 0;
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .table-responsive {
+                display: none !important;
             }
 
-            .sidebar-toggle {
-                display: block;
+            .mobile-cards-container {
+                display: block !important;
             }
         }
+
+        @media (min-width: 769px) {
+            .mobile-cards-container {
+                display: none !important;
+            }
+        }
+
+        /* Styles pour les modales personnalisées */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .custom-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-content {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-modal.active .custom-modal-content {
+            transform: translateY(0);
+        }
+
+        .custom-modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #495057;
+        }
+
+        .custom-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .custom-modal-body {
+            padding: 1.5rem;
+            color: #495057;
+        }
+
+        .custom-modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .btn-custom {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-custom-secondary {
+            background-color: #6c757d;
+            color: white;
+            border-color: #6c757d;
+        }
+
+        .btn-custom-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .btn-custom-primary {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .btn-custom-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        .btn-custom-success {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .btn-custom-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .btn-custom-danger {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .btn-custom-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1060;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .notification-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .notification-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .notification-icon {
+            font-size: 1.25rem;
+        }
+
+        .notification-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
-</head>
-<body>
-    <!-- Sidebar Toggle Button (Mobile) -->
-    <button class="sidebar-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
+@endpush
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="#" class="sidebar-brand">
-                <i class="fas fa-id-card"></i>
-                vCard Admin
-            </a>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="{{ route('admin.index') }}" class="sidebar-item">
-                <i class="fas fa-tachometer-alt me-2"></i>
-                Tableau de bord
-            </a>
-            <a href="{{ route('admin.create') }}" class="sidebar-item">
-                <i class="fas fa-user-plus me-2"></i>
-                Nouveau client
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-chart-bar me-2"></i>
-                Statistiques
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-cog me-2"></i>
-                Paramètres
-            </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Topbar -->
-        <header class="topbar">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb breadcrumb-phoenix">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('admin.index') }}" class="text-decoration-none">
-                            <i class="fas fa-home me-1"></i>
-                            Accueil
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item active">Modifier {{ $customer->firstname }} {{ $customer->lastname }}</li>
-                </ol>
-            </nav>
-            <div class="topbar-user">
-                <span class="text-muted">Administrateur</span>
-                <div class="user-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>
-        </header>
+@section('content')
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0 mb-0">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}" class="text-decoration-none text-muted">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Clients</a></li>
+        <li class="breadcrumb-item active text-primary" aria-current="page">Nouveau Client</li>
+    </ol>
+</nav>
 
         <!-- Content -->
         <div class="content">
@@ -613,6 +729,9 @@
             </div>
         </div>
     </main>
+@endsection
+@push('scripts')
+    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -666,5 +785,6 @@
     });
 });
     </script>
-</body>
-</html>
+
+
+@endpush

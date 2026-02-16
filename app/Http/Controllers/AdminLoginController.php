@@ -10,4 +10,6 @@ class AdminLoginController extends Controller
     {
         return view('admin.login'); // resources/views/admin/login.blade.php
     }
+
+    
 }

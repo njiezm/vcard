@@ -1,497 +1,139 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Administration vCard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+@extends('layouts.admin')
+
+@section('title', 'Gestion des Clients - Phoenix Admin')
+
+@push('styles')
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #6366f1;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --info-color: #3b82f6;
-            --light-bg: #f8fafc;
-            --card-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        /* Styles spécifiques à la page clients */
+        .customer-avatar {
+            object-fit: cover;
+            transition: transform 0.2s ease;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .customer-avatar:hover {
+            transform: scale(1.05);
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--light-bg);
-            color: #334155;
-            line-height: 1.6;
+        .customer-info {
+            min-width: 0;
         }
 
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 2rem 1rem;
-            z-index: 1000;
-            transition: var(--transition);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar-brand {
-            color: white;
-            text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: var(--transition);
-        }
-
-        .sidebar-brand:hover {
-            transform: translateX(5px);
-            color: white;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-item {
-            display: block;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.5rem;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .sidebar-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .sidebar-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
-            padding: 2rem;
-            min-height: 100vh;
-            transition: var(--transition);
-        }
-
-        /* Topbar */
-        .topbar {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: 1rem;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .topbar-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 0.25rem;
-        }
-
-        .topbar-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        /* Stats Cards */
-        .stats-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            box-shadow: var(--card-shadow);
-            transition: var(--transition);
-            border: 1px solid #e2e8f0;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .stats-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: white;
-        }
-
-        .stats-icon.primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
-        .stats-icon.success { background: linear-gradient(135deg, #10b981, #34d399); }
-        .stats-icon.warning { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-        .stats-icon.info { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-
-        /* Table Card */
-        .table-card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-
-        .table-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .table-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 0;
-        }
-
-        /* Buttons */
-        .btn-phoenix {
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            border: none;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            text-decoration: none;
+        .status-badge {
             font-size: 0.875rem;
-        }
-
-        .btn-phoenix-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-
-        .btn-phoenix-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
-            color: white;
-        }
-
-        .btn-phoenix-success {
-            background: linear-gradient(135deg, var(--success-color), #34d399);
-            color: white;
-        }
-
-        .btn-phoenix-warning {
-            background: linear-gradient(135deg, var(--warning-color), #fbbf24);
-            color: white;
-        }
-
-        .btn-phoenix-danger {
-            background: linear-gradient(135deg, var(--danger-color), #f87171);
-            color: white;
-        }
-
-        .btn-phoenix-info {
-            background: linear-gradient(135deg, var(--info-color), #60a5fa);
-            color: white;
-        }
-
-        .btn-phoenix-secondary {
-            background: #64748b;
-            color: white;
-        }
-
-        .btn-action {
             padding: 0.375rem 0.75rem;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
-            margin: 0 0.125rem;
+            transition: all 0.2s ease;
         }
 
-        /* Search and Filters */
-        .search-filters-bar {
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .search-input-group {
-            position: relative;
-            flex: 1;
-            max-width: 400px;
+        .copy-btn {
+            padding: 0.25rem 0.375rem;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
         }
 
-        .search-input-group i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
+        .copy-btn:hover {
+            background-color: var(--phoenix-primary);
+            color: white;
         }
 
-        .search-input-group input {
-            padding-left: 2.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            transition: var(--transition);
-        }
-
-        .search-input-group input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-            outline: none;
+        .copy-btn.copied {
+            background-color: var(--phoenix-success);
+            color: white;
         }
 
         .filter-chip {
             padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            background: #f1f5f9;
-            color: #64748b;
-            cursor: pointer;
-            transition: var(--transition);
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 50px;
             font-size: 0.875rem;
-            font-weight: 500;
-            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .filter-chip:hover {
-            background: #e2e8f0;
-            transform: translateY(-1px);
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
         }
 
         .filter-chip.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-color: var(--phoenix-primary);
             color: white;
-            border-color: var(--primary-color);
+            border-color: var(--phoenix-primary);
         }
 
-        /* Table Styles */
-        .table {
-            margin: 0;
-        }
-
-        .table thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            padding: 1rem;
-            border: none;
+        .search-wrapper {
             position: relative;
         }
 
-        .table tbody tr {
-            transition: var(--transition);
+        .search-input {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
         }
 
-        .table tbody tr:hover {
-            background: #f8fafc;
+        .search-wrapper .input-group-text {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: transparent;
+            border: none;
         }
 
-        .table tbody td {
+        #clearSearch {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: transparent;
+            border: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            overflow: hidden;
+        }
+
+        .customers-table {
+            margin-bottom: 0;
+        }
+
+        .customers-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+            white-space: nowrap;
+        }
+
+        .customers-table td {
             padding: 1rem;
             vertical-align: middle;
-            border-color: #f1f5f9;
+            border-bottom: 1px solid #dee2e6;
         }
 
-        /* Copy Button Styles */
-        .copy-btn {
-            background: none;
-            border: none;
-            color: #64748b;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            transition: var(--transition);
-            font-size: 0.875rem;
-            margin-left: 0.5rem;
+        .customers-table tbody tr:hover {
+            background-color: #f8f9fa;
         }
 
-        .copy-btn:hover {
-            background: #f1f5f9;
-            color: var(--primary-color);
-        }
-
-        .copy-btn.copied {
-            color: var(--success-color);
-            animation: copyPulse 0.6s ease;
-        }
-
-        @keyframes copyPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* Mobile Cards */
-        .mobile-cards-container {
-            display: none;
-            padding: 1rem;
-        }
-
-        .customer-card {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-            transition: var(--transition);
-        }
-
-        .customer-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .customer-card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .customer-card-body {
-            margin-bottom: 1rem;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f8fafc;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .customer-card-actions {
-            display: flex;
-            gap: 0.5rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        /* Loading State */
-        .btn-loading {
-            position: relative;
-            color: transparent !important;
-            pointer-events: none;
-        }
-
-        .btn-loading::after {
-            content: "";
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            margin-left: -8px;
-            margin-top: -8px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        /* Alert */
-        .alert-phoenix {
-            border-radius: 0.5rem;
-            border: none;
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            animation: slideInDown 0.3s ease-out;
-        }
-
-        .alert-phoenix-success { background: #d1fae5; color: #065f46; }
-
-        /* Mobile Toggle */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: white;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            box-shadow: var(--card-shadow);
-            transition: var(--transition);
-        }
-
-        .sidebar-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        /* Sortable Headers */
         .sortable {
             cursor: pointer;
             user-select: none;
@@ -499,943 +141,1065 @@
             padding-right: 1.5rem !important;
         }
 
-        .sortable::after {
-            content: '⇅';
+        .sortable:hover {
+            background-color: #e9ecef;
+        }
+
+        .sortable i {
             position: absolute;
             right: 0.5rem;
-            opacity: 0.3;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .sortable.sorted-asc i,
+        .sortable.sorted-desc i {
+            opacity: 1;
+            color: var(--phoenix-primary);
+        }
+
+        .empty-state {
+            padding: 3rem 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        }
+
+        .stat-card-body {
+            padding: 1.5rem;
+        }
+
+        .stat-card-title {
             font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
         }
 
-        .sortable.sorted-asc::after {
-            content: '↑';
-            opacity: 1;
-            color: var(--primary-color);
+        .stat-card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
         }
 
-        .sortable.sorted-desc::after {
-            content: '↓';
-            opacity: 1;
-            color: var(--primary-color);
+        .stat-card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
         }
 
-        /* Animations */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .animate-slideInLeft {
+            animation: slideInLeft 0.3s ease-out;
         }
 
-        @keyframes slideInDown {
+        @keyframes slideInLeft {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateX(-20px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0);
             }
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(-20px); }
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .table-responsive {
+                display: none !important;
+            }
+
+            .mobile-cards-container {
+                display: block !important;
+            }
         }
 
-        .removing {
-            animation: fadeOut 0.4s ease-out forwards;
+        @media (min-width: 769px) {
+            .mobile-cards-container {
+                display: none !important;
+            }
         }
 
-        /* Copy Tooltip */
-        .copy-tooltip {
+        /* Styles pour les modales personnalisées */
+        .custom-modal {
             position: fixed;
-            background: #1e293b;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            pointer-events: none;
-            z-index: 10000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
             opacity: 0;
-            transition: opacity 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        .copy-tooltip.show {
+        .custom-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-content {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-modal.active .custom-modal-content {
+            transform: translateY(0);
+        }
+
+        .custom-modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #495057;
+        }
+
+        .custom-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .custom-modal-body {
+            padding: 1.5rem;
+            color: #495057;
+        }
+
+        .custom-modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .btn-custom {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-custom-secondary {
+            background-color: #6c757d;
+            color: white;
+            border-color: #6c757d;
+        }
+
+        .btn-custom-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .btn-custom-primary {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .btn-custom-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        .btn-custom-success {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .btn-custom-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .btn-custom-danger {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .btn-custom-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1060;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .notification-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .notification-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .notification-icon {
+            font-size: 1.25rem;
+        }
+
+        .notification-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .notification-close:hover {
             opacity: 1;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1rem; }
-            .sidebar-toggle { display: block; }
-            .table-responsive { display: none; }
-            .mobile-cards-container { display: block; }
-            .search-filters-bar { flex-direction: column; align-items: stretch; }
-            .search-input-group { max-width: 100%; }
-            .topbar { flex-direction: column; text-align: center; gap: 1rem; }
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
-</head>
-<body>
-    <!-- Sidebar Toggle Button (Mobile) -->
-    <button class="sidebar-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
+@endpush
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="#" class="sidebar-brand">
-                <i class="fas fa-id-card"></i>
-                vCard Admin
-            </a>
+@php
+ $customersArray = $customers->map(function($customer) {
+    return [
+        'id' => $customer->id,
+        'name' => $customer->firstname . ' ' . $customer->lastname,
+        'email' => $customer->email,
+        'slug' => $customer->slug ?? '',
+        'admin_code' => $customer->admin_code,
+        'is_active' => $customer->is_active,
+        'photo' => $customer->photo ? asset('storage/' . $customer->photo) : null,
+        'phone' => $customer->phone,
+        'created_at' => $customer->created_at?->format('Y-m-d H:i:s')
+    ];
+})->toArray();
+@endphp
+
+
+
+@section('content')
+<div class="container-fluid py-4">
+    <!-- En-tête de la page -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Gestion des clients</h1>
+            <p class="text-muted mb-0">Gérez tous vos clients et leurs cartes virtuelles</p>
         </div>
-        <nav class="sidebar-menu">
-            <a href="{{ route('admin.index') }}" class="sidebar-item active">
-                <i class="fas fa-tachometer-alt me-2"></i>
-                Tableau de bord
-            </a>
-            <a href="{{ route('admin.create') }}" class="sidebar-item">
-                <i class="fas fa-user-plus me-2"></i>
-                Nouveau client
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-chart-bar me-2"></i>
-                Statistiques
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fas fa-cog me-2"></i>
-                Paramètres
-            </a>
-        </nav>
-    </aside>
+        <a href="{{ route('admin.create') }}" class="btn btn-phoenix btn-primary">
+            <i class="fas fa-plus me-2"></i>
+            Ajouter un client
+        </a>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Topbar -->
-        <header class="topbar">
-            <div>
-                <h1 class="topbar-title">Tableau de bord</h1>
-                <p class="text-muted mb-0">Gestion des vCards</p>
-            </div>
-            <div class="topbar-user">
-                <span class="text-muted">Administrateur</span>
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Content -->
-        <div class="content">
-            <!-- Success Alert -->
-            @if(session('success'))
-                <div class="alert alert-phoenix-success alert-phoenix mb-4">
-                    <i class="fas fa-check-circle"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            <!-- Stats Cards -->
-            <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="stats-card">
-                        <div class="d-flex align-items-center">
-                            <div class="stats-icon primary me-3">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div>
-                                <h3 class="mb-0">{{ $customers->count() }}</h3>
-                                <p class="text-muted mb-0">Total clients</p>
-                            </div>
-                        </div>
+    <!-- Filtres et recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control border-start-0" 
+                               id="searchInput" 
+                               placeholder="Rechercher par nom, email ou téléphone..."
+                               autocomplete="off">
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="stats-card">
-                        <div class="d-flex align-items-center">
-                            <div class="stats-icon success me-3">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h3 class="mb-0">{{ $customers->where('photo', '!=', null)->count() }}</h3>
-                                <p class="text-muted mb-0">Avec photo</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="stats-card">
-                        <div class="d-flex align-items-center">
-                            <div class="stats-icon warning me-3">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <div>
-                                <h3 class="mb-0">{{ $customers->where('website', '!=', null)->count() }}</h3>
-                                <p class="text-muted mb-0">Avec site web</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="stats-card">
-                        <div class="d-flex align-items-center">
-                            <div class="stats-icon info me-3">
-                                <i class="fas fa-instagram"></i>
-                            </div>
-                            <div>
-                                <h3 class="mb-0">{{ $customers->where('instagram', '!=', null)->count() }}</h3>
-                                <p class="text-muted mb-0">Avec Instagram</p>
-                            </div>
-                        </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-phoenix btn-outline-secondary filter-chip active" 
+                                data-filter="all">
+                            <i class="fas fa-users me-1"></i>
+                            Tous
+                            <span class="badge bg-secondary ms-1">{{ $customers->count() }}</span>
+                        </button>
+                        <button class="btn btn-phoenix btn-outline-success filter-chip" 
+                                data-filter="active">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Actifs
+                            <span class="badge bg-success ms-1">{{ $customers->where('is_active', true)->count() }}</span>
+                        </button>
+                        <button class="btn btn-phoenix btn-outline-danger filter-chip" 
+                                data-filter="inactive">
+                            <i class="fas fa-times-circle me-1"></i>
+                            Inactifs
+                            <span class="badge bg-danger ms-1">{{ $customers->where('is_active', false)->count() }}</span>
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Search and Filters Bar -->
-            <div class="search-filters-bar">
-                <div class="search-input-group">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom, email, slug...">
-                </div>
-                <div class="filter-chip active" data-filter="all">
-                    <i class="fas fa-list me-1"></i> Tous
-                </div>
-                <div class="filter-chip" data-filter="active">
-                    <i class="fas fa-toggle-on me-1"></i> Actifs
-                </div>
-                <div class="filter-chip" data-filter="inactive">
-                    <i class="fas fa-toggle-off me-1"></i> Inactifs
-                </div>
-            </div>
-
-            <!-- Table Card -->
-            <div class="table-card">
-                <div class="table-header">
-                    <h2 class="table-title">Liste des clients</h2>
-                    <a href="{{ route('admin.create') }}" class="btn btn-phoenix btn-phoenix-primary">
-                        <i class="fas fa-plus"></i>
-                        Nouveau client
-                    </a>
-                </div>
-                
-                <!-- Desktop Table -->
-                <div class="table-responsive">
-                    <table class="table table-hover" id="customersTable">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-sort="id">ID</th>
-                                <th class="sortable" data-sort="name">Nom</th>
-                                <th class="sortable" data-sort="email">Email</th>
-                                <th>Slug</th>
-                                <th>Code Admin</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($customers as $customer)
-                                <tr data-customer-id="{{ $customer->id }}" data-is-active="{{ $customer->is_active ? 'true' : 'false' }}">
-                                    <td>
-                                        <span class="badge bg-light text-dark">#{{ $customer->id }}</span>
-                                    </td>
-                                    <td data-name="{{ $customer->firstname }} {{ $customer->lastname }}">
-                                        <div class="d-flex align-items-center">
+    <!-- Tableau des clients -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="customersTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Client</th>
+                            <th>Téléphone</th>
+                            <th>Carte virtuelle</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                            <th>Lien</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        @forelse($customers as $customer)
+                            <tr data-customer-id="{{ $customer->id }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-sm me-3">
                                             @if($customer->photo)
                                                 <img src="{{ asset('storage/' . $customer->photo) }}" 
-                                                     alt="{{ $customer->firstname }}" 
-                                                     class="rounded-circle me-2" 
-                                                     width="32" 
-                                                     height="32">
+                                                     alt="{{ $customer->name }}" 
+                                                     class="rounded-circle"
+                                                     onerror="this.src='{{ asset('images/default-avatar.png') }}'">
                                             @else
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" 
-                                                     style="width: 32px; height: 32px; font-size: 0.875rem;">
-                                                    {{ substr($customer->firstname, 0, 1) }}{{ substr($customer->lastname, 0, 1) }}
+                                                <div class="avatar-name rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center">
+                                                    <span>{{ strtoupper(substr($customer->name, 0, 1)) }}</span>
                                                 </div>
                                             @endif
-                                            <div>
-                                                <div class="fw-semibold">{{ $customer->firstname }} {{ $customer->lastname }}</div>
-                                                @if($customer->phone)
-                                                    <small class="text-muted">{{ $customer->phone }}</small>
-                                                @endif
-                                            </div>
                                         </div>
-                                    </td>
-                                    <td data-email="{{ $customer->email }}">
-                                        @if($customer->email)
-                                            <span class="text-muted">{{ $customer->email }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <code class="bg-light px-2 py-1 rounded">{{ $customer->slug }}</code>
-                                            <button class="copy-btn" onclick="copyToClipboard('{{ $customer->slug }}', this)" title="Copier le slug">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <code class="bg-light px-2 py-1 rounded">{{ $customer->admin_code }}</code>
-                                            <button class="copy-btn" onclick="copyToClipboard('{{ $customer->admin_code }}', this)" title="Copier le code admin">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('vcard.show', $customer->slug) }}" 
-                                               target="_blank" 
-                                               class="btn btn-sm btn-phoenix btn-phoenix-info btn-action"
-                                               title="Voir la vCard">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="/admin/{{ $customer->slug }}" 
-                                                target="_blank" 
-                                                class="btn btn-sm btn-phoenix btn-phoenix-warning btn-action"
-                                                title="Admin client">
-                                                    <i class="fas fa-user-cog"></i>
-                                                </a>
-                                            @if($customer->email)
-                                                <button onclick="sendEmail({{ $customer->id }})" 
-                                                        class="btn btn-sm btn-phoenix btn-phoenix-success btn-action"
-                                                        title="Envoyer l'email de bienvenue">
-                                                    <i class="fas fa-envelope"></i>
-                                                </button>
+                                        <div>
+                                            <h6 class="mb-0">{{ $customer->name }}</h6>
+                                            <small class="text-muted">{{ $customer->email }}</small>
+                                            @if($customer->phone)
+                                                <br><small class="text-muted">{{ $customer->phone }}</small>
                                             @endif
-                                            <a href="{{ route('admin.edit', $customer->id) }}" 
-                                               class="btn btn-sm btn-phoenix btn-phoenix-secondary btn-action"
-                                               title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
                                         </div>
-                                        <button onclick="toggleActive({{ $customer->id }})" 
-                                                class="btn btn-sm btn-phoenix btn-phoenix-warning btn-action"
-                                                title="{{ $customer->is_active ? 'Désactiver la carte' : 'Activer la carte' }}">
-                                            <i class="fas {{ $customer->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                    </div>
+                                </td>
+                                <td>{{ $customer->phone ?? '-' }}</td>
+                                <td>
+                                    @if($customer->slug)
+                                        <a href="{{ route('vcard.show', $customer->slug) }}" 
+                                           target="_blank" 
+                                           class="text-primary text-decoration-none">
+                                            {{ route('vcard.show', $customer->slug) }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted">Non défini</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge {{ $customer->is_active ? 'bg-success' : 'bg-danger' }}">
+                                        {{ $customer->is_active ? 'Actif' : 'Inactif' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-phoenix-secondary" 
+                                                type="button" 
+                                                data-bs-toggle="dropdown" 
+                                                aria-expanded="false">
+                                            <i class="fas fa-ellipsis-vertical"></i>
                                         </button>
-                                        <button onclick="deleteCustomer({{ $customer->id }})" 
-                                                class="btn btn-sm btn-phoenix btn-phoenix-danger btn-action"
-                                                title="Supprimer le client">
-                                            <i class="fas fa-trash"></i>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('admin.edit', $customer->id) }}">
+                                                    <i class="fas fa-edit me-2"></i> Modifier
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item send-email-btn" 
+                                                        data-customer-id="{{ $customer->id }}"
+                                                        data-customer-name="{{ $customer->name }}"
+                                                        data-customer-email="{{ $customer->email }}">
+                                                    <i class="fas fa-envelope me-2"></i> Envoyer l'e-mail
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item toggle-active-btn" 
+                                                        data-customer-id="{{ $customer->id }}"
+                                                        data-customer-name="{{ $customer->name }}"
+                                                        data-is-active="{{ $customer->is_active ? 'true' : 'false' }}">
+                                                    <i class="fas fa-toggle-{{ $customer->is_active ? 'off' : 'on' }} me-2"></i> 
+                                                    {{ $customer->is_active ? 'Désactiver' : 'Activer' }}
+                                                </button>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger delete-customer-btn" 
+                                                        data-customer-id="{{ $customer->id }}"
+                                                        data-customer-name="{{ $customer->name }}">
+                                                    <i class="fas fa-trash me-2"></i> Supprimer
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($customer->slug)
+                                        <button class="btn btn-sm btn-phoenix-secondary copy-link-btn" 
+                                                data-link="{{ route('vcard.show', $customer->slug) }}"
+                                                title="Copier le lien">
+                                            <i class="fas fa-copy"></i>
                                         </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Mobile Cards Container -->
-                <div class="mobile-cards-container" id="mobileCardsContainer">
-                    <!-- Cards will be generated by JavaScript -->
-                </div>
+                                    @else
+                                        <button class="btn btn-sm btn-phoenix-secondary" disabled>
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-users-slash fa-3x mb-3 d-block"></i>
+                                        <h5>Aucun client trouvé</h5>
+                                        <p>Commencez par ajouter votre premier client</p>
+                                        <a href="{{ route('admin.create') }}" class="btn btn-phoenix btn-primary mt-2">
+                                            <i class="fas fa-plus me-2"></i>
+                                            Ajouter un client
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
-    </main>
-
-    <!-- Validation Modal -->
-    <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="validationModalLabel">
-                        <i class="fas fa-check-circle me-2"></i>
-                        Validation du nouveau client
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-plus text-primary" style="font-size: 3rem;"></i>
+        
+        <!-- Pagination -->
+        @if($customers->hasPages())
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        Affichage de {{ $customers->firstItem() }} à {{ $customers->lastItem() }} 
+                        sur {{ $customers->total() }} résultats
                     </div>
-                    <p class="text-center mb-4">
-                        Le client <strong id="customerName"></strong> a été créé avec succès. 
-                        Que souhaitez-vous faire ?
-                    </p>
-                    <div class="d-flex justify-content-center flex-wrap">
-                        <button type="button" class="btn btn-option btn-success m-2" onclick="validateAndSend('validate_send')">
-                            <i class="fas fa-paper-plane me-2"></i>
-                            Valider et envoyer l'email
-                        </button>
-                        <button type="button" class="btn btn-option btn-primary m-2" onclick="validateAndSend('validate_only')">
-                            <i class="fas fa-check me-2"></i>
-                            Valider sans envoyer
-                        </button>
-                        <button type="button" class="btn btn-option btn-secondary m-2" onclick="validateAndSend('cancel')">
-                            <i class="fas fa-times me-2"></i>
-                            Annuler
-                        </button>
-                    </div>
+                    {{ $customers->links() }}
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 
-    <!-- Email Status Modal -->
-    <div class="modal fade" id="emailStatusModal" tabindex="-1" aria-labelledby="emailStatusModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="emailStatusModalLabel">
-                        <i class="fas fa-envelope me-2"></i>
-                        Statut de l'envoi
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <div id="emailLoading" class="mb-3">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Chargement...</span>
+    <!-- Statistiques -->
+    <div class="row mt-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">Total Clients</h6>
+                            <h3 class="mb-0">{{ $customers->count() }}</h3>
                         </div>
-                        <p class="mt-3">Envoi de l'email en cours...</p>
-                    </div>
-                    <div id="emailSuccess" style="display: none;">
-                        <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
-                        <p class="mt-3 fw-semibold">Email envoyé avec succès !</p>
-                    </div>
-                    <div id="emailError" style="display: none;">
-                        <i class="fas fa-exclamation-circle text-danger" style="font-size: 3rem;"></i>
-                        <p class="mt-3 fw-semibold">Erreur lors de l'envoi</p>
-                        <p class="text-muted" id="errorMessage"></p>
+                        <div class="ms-3">
+                            <div class="icon-box bg-primary-subtle text-primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">Clients Actifs</h6>
+                            <h3 class="mb-0">{{ $customers->where('is_active', true)->count() }}</h3>
+                        </div>
+                        <div class="ms-3">
+                            <div class="icon-box bg-success-subtle text-success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">Taux d'activation</h6>
+                            <h3 class="mb-0">
+                                @php
+                                    $rate = $customers->count() > 0 
+                                        ? round(($customers->where('is_active', true)->count() / $customers->count()) * 100, 1) 
+                                        : 0;
+                                @endphp
+                                {{ $rate }}%
+                            </h3>
+                        </div>
+                        <div class="ms-3">
+                            <div class="icon-box bg-info-subtle text-info">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">Nouveaux ce mois</h6>
+                            <h3 class="mb-0">
+                                @php
+                                    $newThisMonth = $customers->filter(function($customer) {
+                                        return $customer->created_at->isCurrentMonth();
+                                    })->count();
+                                @endphp
+                                {{ $newThisMonth }}
+                            </h3>
+                        </div>
+                        <div class="ms-3">
+                            <div class="icon-box bg-warning-subtle text-warning">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Copy Tooltip -->
-    <div class="copy-tooltip" id="copyTooltip">
-        <i class="fas fa-check-circle me-2"></i>
-        <span id="copyTooltipText">Copié !</span>
+<!-- Modal Envoyer Email -->
+<div class="modal fade" id="sendEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope text-primary me-2"></i>
+                    Envoyer l'e-mail de bienvenue
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Confirmez-vous l'envoi de l'e-mail à <strong id="emailCustomerName"></strong> ?</p>
+                <p class="text-muted">Adresse e-mail : <strong id="emailCustomerEmail"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="confirmSendEmail">
+                    <i class="fas fa-paper-plane me-2"></i>Envoyer
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Application State
-        const AppState = {
-            customers: [],
-            currentFilter: 'all',
-            searchQuery: '',
-            sortKey: null,
-            sortDirection: 'asc'
-        };
+<!-- Modal Toggle Active -->
+<div class="modal fade" id="toggleActiveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Changer le statut
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="toggleMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-warning" id="confirmToggleActive">
+                    <i class="fas fa-check me-2"></i>Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Initialize Application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCustomers();
-            initializeSearchAndFilter();
-            initializeTableSort();
-            generateMobileCards();
-            setupValidationModal();
-        });
+<!-- Modal Supprimer -->
+<div class="modal fade" id="deleteCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash text-danger me-2"></i>
+                    Supprimer le client
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer <strong id="deleteCustomerName"></strong> ?</p>
+                <p class="text-danger">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteCustomer">
+                    <i class="fas fa-trash me-2"></i>Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Initialize Customers Data
-        function initializeCustomers() {
-            const rows = document.querySelectorAll('#customersTable tbody tr');
-            AppState.customers = Array.from(rows).map(row => ({
-                id: row.dataset.customerId,
-                isActive: row.dataset.isActive === 'true',
-                name: row.querySelector('td[data-name]').dataset.name,
-                email: row.querySelector('td[data-email]').dataset.email,
-                slug: row.querySelector('code').textContent,
-                adminCode: row.querySelectorAll('code')[1].textContent,
-                element: row
-            }));
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Message
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+.icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-name {
+    width: 40px;
+    height: 40px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.filter-chip.active {
+    background-color: var(--phoenix-primary) !important;
+    border-color: var(--phoenix-primary) !important;
+    color: white !important;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+.dropdown-menu {
+    min-width: 180px;
+}
+
+.btn-phoenix {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-phoenix:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variables globales
+    let currentCustomerId = null;
+    const toastEl = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastEl);
+    
+    // Fonction pour afficher une notification
+    function showToast(message, type = 'info') {
+        const toastMessage = document.getElementById('toastMessage');
+        const toastHeader = toastEl.querySelector('.toast-header i');
+        
+        toastMessage.textContent = message;
+        
+        // Mettre à jour l'icône et la couleur selon le type
+        toastHeader.className = 'fas me-2';
+        switch(type) {
+            case 'success':
+                toastHeader.classList.add('fa-check-circle', 'text-success');
+                break;
+            case 'error':
+                toastHeader.classList.add('fa-exclamation-circle', 'text-danger');
+                break;
+            case 'warning':
+                toastHeader.classList.add('fa-exclamation-triangle', 'text-warning');
+                break;
+            default:
+                toastHeader.classList.add('fa-info-circle', 'text-primary');
         }
-
-        // Toggle Sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
+        
+        toast.show();
+    }
+    
+    // Gestionnaire pour le bouton d'envoi d'e-mail
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.send-email-btn')) {
+            const btn = e.target.closest('.send-email-btn');
+            currentCustomerId = btn.dataset.customerId;
+            
+            document.getElementById('emailCustomerName').textContent = btn.dataset.customerName;
+            document.getElementById('emailCustomerEmail').textContent = btn.dataset.customerEmail;
+            
+            const modal = new bootstrap.Modal(document.getElementById('sendEmailModal'));
+            modal.show();
         }
+    });
+    
+    // Confirmation envoi e-mail
+    document.getElementById('confirmSendEmail').addEventListener('click', function() {
+        if (!currentCustomerId) return;
+        
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Envoi en cours...';
+        
+        fetch(
+    `{{ route('admin.send.email', ['customer' => ':id']) }}`.replace(':id', currentCustomerId),
+    {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    }
+)
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.querySelector('.sidebar-toggle');
-            if (window.innerWidth <= 768 && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-                sidebar.classList.remove('active');
+        .then(response => response.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('sendEmailModal')).hide();
+            
+            if (data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Une erreur est survenue', 'error');
             }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showToast('Erreur réseau', 'error');
+            bootstrap.Modal.getInstance(document.getElementById('sendEmailModal')).hide();
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Envoyer';
+            currentCustomerId = null;
         });
+    });
+    
+    // Gestionnaire pour le bouton toggle active
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.toggle-active-btn')) {
+            const btn = e.target.closest('.toggle-active-btn');
+            currentCustomerId = btn.dataset.customerId;
+            const isActive = btn.dataset.isActive === 'true';
+            const action = isActive ? 'désactiver' : 'activer';
+            
+            document.getElementById('toggleMessage').innerHTML = 
+                `Êtes-vous sûr de vouloir <strong>${action}</strong> la carte de <strong>${btn.dataset.customerName}</strong> ?<br>
+                <small class="text-muted">${isActive ? 'La carte ne sera plus accessible.' : 'La carte sera accessible publiquement.'}</small>`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('toggleActiveModal'));
+            modal.show();
+        }
+    });
+    
+    // Confirmation toggle active
+    document.getElementById('confirmToggleActive').addEventListener('click', function() {
+        if (!currentCustomerId) return;
+        
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mise à jour...';
+        
+       fetch(`{{ route('admin.customer.toggleActive', ['customer' => ':id']) }}`.replace(':id', currentCustomerId), {
 
-        // Copy to Clipboard Function
-        async function copyToClipboard(text, button) {
-            try {
-                // Use modern Clipboard API
-                await navigator.clipboard.writeText(text);
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('toggleActiveModal')).hide();
+            
+            if (data.success) {
+                // Mettre à jour le statut dans le tableau
+                const row = document.querySelector(`tr[data-customer-id="${currentCustomerId}"]`);
+                if (row) {
+                    const statusBadge = row.querySelector('td:nth-child(4) .badge');
+                    if (statusBadge) {
+                        statusBadge.textContent = data.is_active ? 'Actif' : 'Inactif';
+                        statusBadge.className = `badge ${data.is_active ? 'bg-success' : 'bg-danger'}`;
+                    }
+                    
+                    // Mettre à jour le bouton dans le dropdown
+                    const toggleBtn = row.querySelector('.toggle-active-btn');
+                    if (toggleBtn) {
+                        toggleBtn.dataset.isActive = data.is_active;
+                        toggleBtn.innerHTML = `<i class="fas fa-toggle-${data.is_active ? 'off' : 'on'} me-2"></i>${data.is_active ? 'Désactiver' : 'Activer'}`;
+                    }
+                }
                 
-                // Visual feedback
-                const icon = button.querySelector('i');
-                const originalClass = icon.className;
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Une erreur est survenue', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showToast('Erreur réseau', 'error');
+            bootstrap.Modal.getInstance(document.getElementById('toggleActiveModal')).hide();
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check me-2"></i>Confirmer';
+            currentCustomerId = null;
+        });
+    });
+    
+    // Gestionnaire pour le bouton supprimer
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-customer-btn')) {
+            const btn = e.target.closest('.delete-customer-btn');
+            currentCustomerId = btn.dataset.customerId;
+            
+            document.getElementById('deleteCustomerName').textContent = btn.dataset.customerName;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteCustomerModal'));
+            modal.show();
+        }
+    });
+    
+    // Confirmation suppression
+    document.getElementById('confirmDeleteCustomer').addEventListener('click', function() {
+        if (!currentCustomerId) return;
+        
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Suppression...';
+        
+        fetch(`{{ route('admin.customer.destroy', ['customer' => ':id']) }}`.replace(':id', currentCustomerId), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('deleteCustomerModal')).hide();
+            
+            if (data.success) {
+                // Supprimer la ligne du tableau
+                const row = document.querySelector(`tr[data-customer-id="${currentCustomerId}"]`);
+                if (row) {
+                    row.style.transition = 'opacity 0.3s';
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                }
                 
-                // Change icon to checkmark
-                icon.className = 'fas fa-check';
-                button.classList.add('copied');
+                showToast(data.message, 'success');
                 
-                // Show tooltip
-                showCopyTooltip(button, 'Copié !');
+                // Mettre à jour les compteurs
+                updateCounters();
+            } else {
+                showToast(data.message || 'Une erreur est survenue', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showToast('Erreur réseau', 'error');
+            bootstrap.Modal.getInstance(document.getElementById('deleteCustomerModal')).hide();
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash me-2"></i>Supprimer';
+            currentCustomerId = null;
+        });
+    });
+    
+    // Gestionnaire pour copier le lien
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.copy-link-btn')) {
+            const btn = e.target.closest('.copy-link-btn');
+            const link = btn.dataset.link;
+            
+            navigator.clipboard.writeText(link).then(() => {
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check text-success"></i>';
                 
-                // Reset after 2 seconds
                 setTimeout(() => {
-                    icon.className = originalClass;
-                    button.classList.remove('copied');
+                    btn.innerHTML = originalIcon;
                 }, 2000);
                 
-            } catch (err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-999999px';
-                textArea.style.top = '-999999px';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                
-                try {
-                    document.execCommand('copy');
-                    showCopyTooltip(button, 'Copié !');
-                } catch (err) {
-                    showCopyTooltip(button, 'Erreur de copie');
-                }
-                
-                document.body.removeChild(textArea);
-            }
+                showToast('Lien copié dans le presse-papiers', 'success');
+            }).catch(err => {
+                console.error('Erreur:', err);
+                showToast('Erreur lors de la copie', 'error');
+            });
         }
-
-        // Show Copy Tooltip
-        function showCopyTooltip(element, message) {
-            const tooltip = document.getElementById('copyTooltip');
-            const tooltipText = document.getElementById('copyTooltipText');
-            const rect = element.getBoundingClientRect();
-            
-            tooltipText.textContent = message;
-            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-            tooltip.style.top = rect.top - 40 + 'px';
-            tooltip.classList.add('show');
-            
-            setTimeout(() => {
-                tooltip.classList.remove('show');
-            }, 2000);
-        }
-
-        // Search and Filter Functionality
-        function initializeSearchAndFilter() {
-            const searchInput = document.getElementById('searchInput');
-            const filterChips = document.querySelectorAll('.filter-chip');
-
-            searchInput.addEventListener('input', debounce(function(e) {
-                AppState.searchQuery = e.target.value.toLowerCase();
-                applyFilters();
-            }, 300));
-
-            filterChips.forEach(chip => {
-                chip.addEventListener('click', function() {
-                    filterChips.forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    AppState.currentFilter = this.dataset.filter;
-                    applyFilters();
+    });
+    
+    // Fonction pour mettre à jour les compteurs
+    function updateCounters() {
+        const rows = document.querySelectorAll('#customersTableBody tr');
+        const activeCount = document.querySelectorAll('#customersTableBody tr .badge.bg-success').length;
+        
+        // Mettre à jour les badges dans les filtres
+        document.querySelector('.filter-chip[data-filter="all"] .badge').textContent = rows.length;
+        document.querySelector('.filter-chip[data-filter="active"] .badge').textContent = activeCount;
+        document.querySelector('.filter-chip[data-filter="inactive"] .badge').textContent = rows.length - activeCount;
+    }
+    
+    // Gestionnaire de recherche
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#customersTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
                 });
-            });
-        }
-
-        // Debounce Function
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        // Apply Filters
-        function applyFilters() {
-            const filteredCustomers = AppState.customers.filter(customer => {
-                const matchesSearch = !AppState.searchQuery || 
-                    customer.name.toLowerCase().includes(AppState.searchQuery) ||
-                    customer.email.toLowerCase().includes(AppState.searchQuery) ||
-                    customer.slug.toLowerCase().includes(AppState.searchQuery);
-
-                const matchesFilter = AppState.currentFilter === 'all' ||
-                    (AppState.currentFilter === 'active' && customer.isActive) ||
-                    (AppState.currentFilter === 'inactive' && !customer.isActive);
-
-                return matchesSearch && matchesFilter;
-            });
-
-            // Update table rows
-            AppState.customers.forEach(customer => {
-                const isVisible = filteredCustomers.includes(customer);
-                customer.element.style.display = isVisible ? '' : 'none';
-            });
-
-            // Update mobile cards
-            updateMobileCards(filteredCustomers);
-        }
-
-        // Table Sort Functionality
-        function initializeTableSort() {
-            const headers = document.querySelectorAll('th.sortable');
+            }, 300);
+        });
+    }
+    
+    // Gestionnaire des filtres
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            // Mettre à jour le filtre actif
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
             
-            headers.forEach(header => {
-                header.addEventListener('click', () => {
-                    const sortKey = header.dataset.sort;
-                    
-                    // Reset other headers
-                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-                    
-                    // Determine sort direction
-                    if (AppState.sortKey === sortKey) {
-                        AppState.sortDirection = AppState.sortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        AppState.sortKey = sortKey;
-                        AppState.sortDirection = 'asc';
-                    }
-                    
-                    header.classList.add(`sorted-${AppState.sortDirection}`);
-                    sortTable();
-                });
-            });
-        }
-
-        // Sort Table
-        function sortTable() {
-            AppState.customers.sort((a, b) => {
-                let aVal, bVal;
-                
-                if (AppState.sortKey === 'id') {
-                    aVal = parseInt(a.id);
-                    bVal = parseInt(b.id);
-                } else if (AppState.sortKey === 'name') {
-                    aVal = a.name;
-                    bVal = b.name;
-                } else if (AppState.sortKey === 'email') {
-                    aVal = a.email;
-                    bVal = b.email;
+            const filter = this.dataset.filter;
+            const rows = document.querySelectorAll('#customersTableBody tr');
+            
+            rows.forEach(row => {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'active') {
+                    const isActive = row.querySelector('.badge.bg-success');
+                    row.style.display = isActive ? '' : 'none';
+                } else if (filter === 'inactive') {
+                    const isInactive = row.querySelector('.badge.bg-danger');
+                    row.style.display = isInactive ? '' : 'none';
                 }
-                
-                if (aVal < bVal) return AppState.sortDirection === 'asc' ? -1 : 1;
-                if (aVal > bVal) return AppState.sortDirection === 'asc' ? 1 : -1;
-                return 0;
             });
-            
-            // Reorder DOM elements
-            const tbody = document.querySelector('#customersTable tbody');
-            AppState.customers.forEach(customer => {
-                tbody.appendChild(customer.element);
-            });
-        }
-
-        // Generate Mobile Cards
-        function generateMobileCards() {
-            const container = document.getElementById('mobileCardsContainer');
-            container.innerHTML = '';
-            
-            AppState.customers.forEach(customer => {
-                const row = customer.element;
-                const phone = row.querySelector('small')?.textContent || '';
-                const avatar = row.querySelector('img')?.src || null;
-                const initials = avatar ? null : customer.name.split(' ').map(n => n[0]).join('');
-
-                const card = document.createElement('div');
-                card.className = 'customer-card';
-                card.dataset.customerId = customer.id;
-                card.dataset.isActive = customer.isActive;
-                card.dataset.name = customer.name;
-                card.dataset.email = customer.email;
-                card.dataset.slug = customer.slug;
-                
-                card.innerHTML = `
-                    <div class="customer-card-header">
-                        ${avatar ? `<img src="${avatar}" class="rounded-circle me-3" width="48" height="48">` : 
-                          `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; font-size: 1.2rem;">${initials}</div>`}
-                        <div>
-                            <h5 class="mb-0">${customer.name}</h5>
-                            <small class="text-muted">${phone}</small>
-                        </div>
-                    </div>
-                    <div class="customer-card-body">
-                        <div class="info-row">
-                            <span class="info-label">Email:</span> 
-                            <span>${customer.email || '-'}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Slug:</span> 
-                            <div class="d-flex align-items-center">
-                                <code>${customer.slug}</code>
-                                <button class="copy-btn" onclick="copyToClipboard('${customer.slug}', this)" title="Copier le slug">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Code Admin:</span> 
-                            <div class="d-flex align-items-center">
-                                <code>${customer.adminCode}</code>
-                                <button class="copy-btn" onclick="copyToClipboard('${customer.adminCode}', this)" title="Copier le code admin">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-card-actions">
-                        <button onclick="toggleActive(${customer.id})" class="btn btn-sm btn-phoenix-${customer.isActive ? 'warning' : 'success'}" title="${customer.isActive ? 'Désactiver' : 'Activer'}">
-                            <i class="fas fa-toggle-${customer.isActive ? 'on' : 'off'}"></i>
-                        </button>
-                        <button onclick="deleteCustomer(${customer.id})" class="btn btn-sm btn-phoenix-danger" title="Supprimer">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Update Mobile Cards
-        function updateMobileCards(visibleCustomers) {
-            const cards = document.querySelectorAll('.customer-card');
-            cards.forEach(card => {
-                const customerId = card.dataset.customerId;
-                const isVisible = visibleCustomers.some(c => c.id === customerId);
-                card.style.display = isVisible ? '' : 'none';
-            });
-        }
-
-        // API Call Function
-        async function apiCall(url, options = {}) {
-            const defaultOptions = {
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                }
-            };
-            const finalOptions = { ...defaultOptions, ...options };
-
-            try {
-                const response = await fetch(url, finalOptions);
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.message || 'Une erreur est survenue.');
-                }
-                
-                return data;
-            } catch (error) {
-                console.error('API Call Error:', error);
-                showNotification(error.message || 'Erreur réseau.', 'error');
-                throw error;
-            }
-        }
-
-        // Set Button Loading State
-        function setButtonLoading(button, isLoading) {
-            if (isLoading) {
-                button.classList.add('btn-loading');
-                button.disabled = true;
-            } else {
-                button.classList.remove('btn-loading');
-                button.disabled = false;
-            }
-        }
-
-        // Toggle Active Status
-        async function toggleActive(customerId) {
-            const button = event.target.closest('button');
-            const originalContent = button.innerHTML;
-            setButtonLoading(button, true);
-
-            try {
-                const url = `{{ route('admin.customer.toggleActive', ['customer' => ':id']) }}`.replace(':id', customerId);
-                const data = await apiCall(url, { method: 'POST' });
-                
-                // Update state
-                const customer = AppState.customers.find(c => c.id === customerId);
-                if (customer) {
-                    customer.isActive = data.is_active;
-                    customer.element.dataset.isActive = data.is_active;
-                }
-                
-                // Update UI
-                const icon = button.querySelector('i');
-                icon.className = `fas fa-toggle-${data.is_active ? 'on' : 'off'}`;
-                button.className = `btn btn-sm btn-phoenix-${data.is_active ? 'warning' : 'success'} btn-action`;
-                button.title = data.is_active ? 'Désactiver la carte' : 'Activer la carte';
-                
-                // Update mobile card if exists
-                const mobileCard = document.querySelector(`.customer-card[data-customer-id="${customerId}"]`);
-                if (mobileCard) {
-                    mobileCard.dataset.isActive = data.is_active;
-                    const mobileButton = mobileCard.querySelector('button[onclick*="toggleActive"]');
-                    if (mobileButton) {
-                        mobileButton.className = `btn btn-sm btn-phoenix-${data.is_active ? 'warning' : 'success'}`;
-                        mobileButton.querySelector('i').className = `fas fa-toggle-${data.is_active ? 'on' : 'off'}`;
-                    }
-                }
-                
-                showNotification(data.message, 'success');
-            } catch (error) {
-                // Error already handled by apiCall
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        // Delete Customer
-        async function deleteCustomer(customerId) {
-            if (!confirm('Voulez-vous vraiment supprimer ce client ? Cette action est irréversible.')) {
-                return;
-            }
-
-            const button = event.target.closest('button');
-            setButtonLoading(button, true);
-
-            try {
-                const url = `{{ route('admin.customer.destroy', ['customer' => ':id']) }}`.replace(':id', customerId);
-                const data = await apiCall(url, { method: 'DELETE' });
-
-                // Animate and remove
-                const row = document.querySelector(`tr[data-customer-id="${customerId}"]`);
-                const card = document.querySelector(`.customer-card[data-customer-id="${customerId}"]`);
-                
-                if (row) {
-                    row.classList.add('removing');
-                    setTimeout(() => {
-                        row.remove();
-                        // Update state
-                        AppState.customers = AppState.customers.filter(c => c.id !== customerId);
-                    }, 400);
-                }
-                
-                if (card) {
-                    card.style.display = 'none';
-                    setTimeout(() => card.remove(), 400);
-                }
-                
-                showNotification(data.message, 'success');
-            } catch (error) {
-                // Error already handled by apiCall
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        // Send Email
-        let currentCustomerId = null;
-
-        function sendEmail(customerId) {
-            currentCustomerId = customerId;
-            const statusModal = new bootstrap.Modal(document.getElementById('emailStatusModal'));
-            
-            // Reset modal state
-            document.getElementById('emailLoading').style.display = 'block';
-            document.getElementById('emailSuccess').style.display = 'none';
-            document.getElementById('emailError').style.display = 'none';
-            
-            statusModal.show();
-
-            const url = "{{ route('admin.send.email', ['customer' => ':id']) }}".replace(':id', customerId);
-            
-            apiCall(url, { method: 'POST' })
-                .then(data => {
-                    document.getElementById('emailLoading').style.display = 'none';
-                    document.getElementById('emailSuccess').style.display = 'block';
-                    setTimeout(() => statusModal.hide(), 2000);
-                })
-                .catch(error => {
-                    document.getElementById('emailLoading').style.display = 'none';
-                    document.getElementById('emailError').style.display = 'block';
-                    document.getElementById('errorMessage').textContent = error.message;
-                });
-        }
-
-        // Setup Validation Modal
-        function setupValidationModal() {
-            @if(session('show_validation_modal') && session('new_customer'))
-                const customer = @json(session('new_customer'));
-                currentCustomerId = customer.id;
-                document.getElementById('customerName').textContent = customer.firstname + ' ' + customer.lastname;
-                const modal = new bootstrap.Modal(document.getElementById('validationModal'));
-                modal.show();
-            @endif
-        }
-
-        // Validate and Send
-        function validateAndSend(action) {
-            if (!currentCustomerId) return;
-            
-            const modal = bootstrap.Modal.getInstance(document.getElementById('validationModal'));
-            modal.hide();
-            
-            if (action === 'cancel') return;
-            
-            apiCall('{{ route("admin.validate.send") }}', {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    customer_id: currentCustomerId, 
-                    action: action 
-                })
-            }).then(data => {
-                showNotification(data.message, 'success');
-            }).catch(() => {
-                // Error already handled by apiCall
-            });
-        }
-
-        // Show Notification
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            const bgColor = type === 'success' ? 
-                'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)' : 
-                'linear-gradient(135deg, #fccb90 0%, #ff9a9e 100%)';
-            const textColor = type === 'success' ? '#0f5132' : '#842029';
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-            
-            notification.style.cssText = `
-                position: fixed; top: 20px; right: 20px; background: ${bgColor}; 
-                color: ${textColor}; padding: 15px 20px; border-radius: 10px; 
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10000; 
-                animation: slideInRight 0.3s ease-out; font-weight: 500; 
-                max-width: 300px; display: flex; align-items: center;
-            `;
-            notification.innerHTML = `
-                <i class="fas ${icon} me-3" style="font-size: 1.25rem;"></i>
-                <span>${message}</span>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // Add slide animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight { 
-                from { opacity: 0; transform: translateX(100px); } 
-                to { opacity: 1; transform: translateX(0); } 
-            }
-            @keyframes slideOutRight { 
-                from { opacity: 1; transform: translateX(0); } 
-                to { opacity: 0; transform: translateX(100px); } 
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-</body>
-</html>
+        });
+    });
+});
+</script>
+@endpush
