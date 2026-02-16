@@ -14,6 +14,11 @@ class VCardController  extends Controller
             ->firstOrFail();
 
         // Increment views
+        // comentiare
+
+        // comentiar encore 
+
+        //test
         $customer->incrementViews();
 
         return view('vcard.show', compact('customer'));
