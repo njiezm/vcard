@@ -54,8 +54,8 @@
                 <div class="bank-info-item">
                     <span class="bank-info-label">Bénéficiaire</span>
                     <div class="flex items-center gap-2">
-                        <span class="bank-info-value">DIGITCARD ELITE SYSTEM</span>
-                        <button class="copy-button" onclick="copyToClipboard('DIGITCARD ELITE SYSTEM')">
+                        <span class="bank-info-value">EI NJIEZM.FR - N'jie ZAMON</span>
+                        <button class="copy-button" onclick="copyToClipboard('EI NJIEZM.FR - N\'jie ZAMON')">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
@@ -63,8 +63,8 @@
                 <div class="bank-info-item">
                     <span class="bank-info-label">IBAN</span>
                     <div class="flex items-center gap-2">
-                        <span class="bank-info-value">FR76 3000 6000 0123 4567 8901 234</span>
-                        <button class="copy-button" onclick="copyToClipboard('FR76 3000 6000 0123 4567 8901 234')">
+                        <span class="bank-info-value">FR76 1759 8000 0100 0316 2530 113</span>
+                        <button class="copy-button" onclick="copyToClipboard('FR76 1759 8000 0100 0316 2530 113')">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
@@ -72,8 +72,8 @@
                 <div class="bank-info-item">
                     <span class="bank-info-label">BIC</span>
                     <div class="flex items-center gap-2">
-                        <span class="bank-info-value">BNPAFRPP</span>
-                        <button class="copy-button" onclick="copyToClipboard('BNPAFRPP')">
+                        <span class="bank-info-value">LYDIFRP2XXX</span>
+                        <button class="copy-button" onclick="copyToClipboard('LYDIFRP2XXX')">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
