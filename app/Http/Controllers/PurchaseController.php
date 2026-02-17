@@ -182,7 +182,9 @@ public function processPurchase(Request $request)
             return redirect()->route('purchase')->with('error', 'Commande non trouvée');
         }
 
-        return view('payment.payment_sumup', compact('order'));
+        $amount = $order->amount; //
+
+        return view('payment.payment_sumup', compact('order', 'amount'));
     }
 
     /**
