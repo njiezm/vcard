@@ -30,7 +30,7 @@
 
     {{-- Footer infos --}}
     <p style="margin:5px 0;"><strong>{{ $isEnglish ? 'Company' : 'Entreprise' }} :</strong> njiezm.fr</p>
-    <p style="margin:5px 0;"><strong>Email :</strong> njie@njiezm.fr</p>
+    <p style="margin:5px 0;"><strong>Email :</strong> contact@njiezm.fr</p>
 
     <p style="margin-top:20px; font-size:16px;">{{ $isEnglish ? 'Thank you for your trust.' : 'Merci pour votre confiance.' }}</p>
 
