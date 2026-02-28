@@ -747,15 +747,15 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    photoContainer.innerHTML = `<img src="${e.target.result}" alt="Aperçu" class="photo-preview" id="previewPhoto">`;
+                    photoContainer.innerHTML = `<img src="${e.target.result}" alt="Aperçu" class="img-fluid photo-preview" id="previewPhoto">`;
                 }
                 reader.readAsDataURL(file);
             } else {
                 // Restaurer la photo actuelle si on annule la sélection
                 @if($customer->photo)
-                    photoContainer.innerHTML = `<img src="{{ asset('storage/' . $customer->photo) }}" alt="Photo actuelle" class="photo-preview" id="currentPhoto">`;
+                    photoContainer.innerHTML = `<img src="{{ asset('storage/' . $customer->photo) }}" alt="Photo actuelle" class="img-fluid photo-preview" id="currentPhoto">`;
                 @else
-                    photoContainer.innerHTML = `<div class="photo-placeholder">{{ substr($customer->firstname, 0, 1) }}{{ substr($customer->lastname, 0, 1) }}</div>`;
+                    photoContainer.innerHTML = `<div class="img-fluid photo-placeholder">{{ substr($customer->firstname, 0, 1) }}{{ substr($customer->lastname, 0, 1) }}</div>`;
                 @endif
             }
         }
