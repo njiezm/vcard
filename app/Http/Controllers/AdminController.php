@@ -146,6 +146,29 @@ class AdminController extends Controller
             'message' => 'Statut de la commande mis à jour !'
         ]);
     }
+
+    // Dans app/Http/Controllers/AdminController.php
+
+public function updateOrder(Request $request, Order $order)
+{
+    // Validation des données
+    $request->validate([
+        'firstname' => 'required|string|max:255',
+        'lastname' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'phone' => 'nullable|string|max:20',
+        'amount' => 'required|numeric|min:0',
+        'currency' => 'required|string|max:3',
+        'payment_method' => 'required|in:paypal,sumup,bank_transfer',
+        'status' => 'required|in:pending,paid,completed,cancelled',
+    ]);
+
+    // Mise à jour de la commande
+    $order->update($request->all());
+
+    // Redirection avec un message de succès
+    return redirect()->route('admin.orders')->with('success', 'Commande mise à jour avec succès !');
+}
     
     public function deleteOrder(Order $order)
     {
@@ -426,9 +449,44 @@ public function exportOrders(Request $request)
     return redirect()->back()->with('error', 'Format d\'export non valide.');
 }
 
+// Dans app/Http/Controllers/AdminController.php
+
+// Remplacez la méthode showOrder existante par celle-ci :
 public function showOrder(Order $order)
 {
-    return view('admin.order_show', compact('order'));
+    // Prépare les badges pour un affichage facile en JS
+    $statusBadge = '';
+    switch ($order->status) {
+        case 'pending': $statusBadge = '<span class="badge bg-warning">En Attente</span>'; break;
+        case 'paid': $statusBadge = '<span class="badge bg-success">Payée</span>'; break;
+        case 'completed': $statusBadge = '<span class="badge bg-primary">Complétée</span>'; break;
+        case 'cancelled': $statusBadge = '<span class="badge bg-danger">Annulée</span>'; break;
+    }
+
+    $paymentMethodBadge = '';
+    switch ($order->payment_method) {
+        case 'paypal': $paymentMethodBadge = '<span class="badge bg-primary"><i class="fab fa-paypal me-1"></i>PayPal</span>'; break;
+        case 'sumup': $paymentMethodBadge = '<span class="badge bg-info"><i class="fas fa-credit-card me-1"></i>SumUp</span>'; break;
+        case 'bank_transfer': $paymentMethodBadge = '<span class="badge bg-secondary"><i class="fas fa-university me-1"></i>Virement</span>'; break;
+    }
+
+    return response()->json([
+        'order' => [
+            'id' => $order->id,
+            'order_id' => $order->order_id,
+            'amount' => number_format($order->amount, 2, ',', ' '),
+            'created_at' => $order->created_at->format('d/m/Y H:i'),
+            'firstname' => $order->firstname,
+            'lastname' => $order->lastname,
+            'email' => $order->email,
+            'phone' => $order->phone,
+            'status' => $order->status,
+            'status_badge' => $statusBadge,
+            'payment_method' => $order->payment_method,
+            'payment_method_badge' => $paymentMethodBadge,
+            'items' => $order->items, 
+        ]
+    ]);
 }
 
 public function sendInvoice(Order $order)

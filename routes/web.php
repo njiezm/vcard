@@ -51,27 +51,51 @@ Route::prefix('admin190919642025')->group(function () {
     Route::delete('/orders/{order}', [AdminController::class, 'deleteOrder'])
         ->name('admin.orders.delete');
         
-    Route::get('/orders/{order}', [AdminController::class, 'showOrder'])
-        ->name('admin.orders.show');
 
-    Route::post('/orders/{order}/send-invoice', [AdminController::class, 'sendInvoice'])
-        ->name('admin.orders.send-invoice');
-        
-    Route::get('/orders/{order}/download-invoice', [AdminController::class, 'downloadInvoice'])
-        ->name('admin.orders.download-invoice');
-        
-    Route::post('/orders/bulk-update-status', [AdminController::class, 'bulkUpdateStatus'])
-        ->name('admin.orders.bulk-update-status');
-        
-    Route::post('/orders/bulk-create-customers', [AdminController::class, 'bulkCreateCustomers'])
-        ->name('admin.orders.bulk-create-customers');
+        // ... autres routes ...
 
-    Route::delete('/orders/bulk-delete', [AdminController::class, 'bulkDelete'])
-        ->name('admin.orders.bulk-delete');
+// ===== ROUTES POUR UNE COMMANDE SPÉCIFIQUE ({order}) =====
+// Mettez les routes les plus spécifiques EN PREMIER
+
+// 1. Route pour éditer (très spécifique)
+Route::get('/orders/{order}/edit', [AdminController::class, 'editO'])
+    ->name('admin.orders.edit');
+
+// 2. Route pour afficher (générale, mais doit être avant les autres routes qui ne sont pas GET)
+Route::get('/orders/{order}', [AdminController::class, 'showOrder'])
+    ->name('admin.orders.show');
+
+// 3. Routes pour les actions spécifiques (POST, PUT, DELETE)
+Route::post('/orders/{order}/create-customer', [AdminController::class, 'createCustomerFromOrder'])
+    ->name('admin.orders.create-customer');
+
+Route::put('/orders/{order}/status', [AdminController::class, 'updateOrderStatus'])
+    ->name('admin.orders.update-status');
+
+Route::put('/orders/{order}', [AdminController::class, 'updateOrder'])->name('admin.orders.update');
+
+Route::delete('/orders/{order}', [AdminController::class, 'deleteOrder'])
+    ->name('admin.orders.delete');
+
+Route::post('/orders/{order}/send-invoice', [AdminController::class, 'sendInvoice'])
+    ->name('admin.orders.send-invoice');
     
+Route::get('/orders/{order}/download-invoice', [AdminController::class, 'downloadInvoice'])
+    ->name('admin.orders.download-invoice');
 
-    Route::get('/orders/{order}/edit', [AdminController::class, 'editO'])
-        ->name('admin.orders.edit');
+
+// ===== ROUTES "BULK" (sans {order}) =====
+// Celles-ci peuvent être placées après, car elles n'ont pas le même pattern d'URL
+Route::post('/orders/bulk-update-status', [AdminController::class, 'bulkUpdateStatus'])
+    ->name('admin.orders.bulk-update-status');
+    
+Route::post('/orders/bulk-create-customers', [AdminController::class, 'bulkCreateCustomers'])
+    ->name('admin.orders.bulk-create-customers');
+
+Route::delete('/orders/bulk-delete', [AdminController::class, 'bulkDelete'])
+    ->name('admin.orders.bulk-delete');
+
+// ... autres routes ...
         
 
     // ===== ROUTES CLIENTS =====
