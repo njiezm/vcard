@@ -39,6 +39,8 @@ Route::prefix('admin190919642025')->group(function () {
         }
         return app(AdminController::class)->orders(request());
     })->name('admin.orders');
+    
+    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('admin.orders.export');
 
     Route::post('/orders/{order}/create-customer', [AdminController::class, 'createCustomerFromOrder'])
         ->name('admin.orders.create-customer');
@@ -66,11 +68,11 @@ Route::prefix('admin190919642025')->group(function () {
 
     Route::delete('/orders/bulk-delete', [AdminController::class, 'bulkDelete'])
         ->name('admin.orders.bulk-delete');
+    
 
     Route::get('/orders/{order}/edit', [AdminController::class, 'editO'])
         ->name('admin.orders.edit');
         
-    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('admin.orders.export');
 
     // ===== ROUTES CLIENTS =====
     Route::get('/create', function () {
@@ -146,3 +148,12 @@ Route::post('/purchase/process', [PurchaseController::class, 'processPurchase'])
 // -----------------
 Route::get('/{slug}', [VCardController::class, 'show'])->name('vcard.show');
 Route::get('/vcard/download/{slug}', [VCardController::class, 'download'])->name('vcard.download');
+
+
+// -----------------
+// Routes factures (PDF)
+// -----------------
+Route::get('/facture/{order}/{hash}/pdf', [AdminController::class, 'publicInvoice'])
+    ->name('invoice.public');
+
+    

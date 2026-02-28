@@ -542,7 +542,9 @@
             </a>
 
             <div class="mt-12 text-[10px] font-mono text-slate-700 tracking-widest uppercase">
-                © 2024-2026 // Obsidian Elite // Encrypted Session
+                © {{ date('Y') }} // by 
+                <a href="https://njiezm.fr" target="_blank">njiezm.fr</a> 
+                // All rights reserved.            
             </div>
         </div>
     </footer>

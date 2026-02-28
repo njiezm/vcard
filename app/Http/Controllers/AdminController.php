@@ -10,6 +10,7 @@ use App\Mail\WelcomeVCardMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminController extends Controller
 {
@@ -376,7 +377,7 @@ public function exportOrders(Request $request)
     $format = $request->get('format', 'csv'); // Récupère le format, par défaut 'csv'
 
     // Récupère toutes les commandes avec les informations du client
-    $orders = Order::with('customer')->latest()->get();
+    $orders = Order::latest()->get();
 
     if ($format === 'csv') {
         $fileName = 'commandes_' . date('Y-m-d_H-i-s') . '.csv';
@@ -399,8 +400,8 @@ public function exportOrders(Request $request)
             foreach ($orders as $order) {
                 fputcsv($file, [
                     $order->id,
-                    $order->customer ? $order->customer->name : 'N/A',
-                    $order->customer ? $order->customer->email : 'N/A',
+                    $order->full_name,
+                    $order->email,
                     number_format($order->amount, 2, ',', ' '),
                     $order->status,
                     $order->created_at->format('d/m/Y H:i:s')
@@ -432,26 +433,29 @@ public function showOrder(Order $order)
 
 public function sendInvoice(Order $order)
 {
-    // Exemple : envoyer la facture par email
-    if ($order->customer && $order->customer->email) {
-        try {
-            Mail::to($order->customer->email)->send(new \App\Mail\OrderInvoiceMail($order));
-            return response()->json([
-                'success' => true,
-                'message' => 'Facture envoyée avec succès !'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'envoi : ' . $e->getMessage()
-            ], 500);
-        }
+    // On cherche le client par email
+    $customer = Customer::where('email', $order->email)->first();
+
+    if (!$customer || !$customer->email) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucun email associé à cette commande.'
+        ], 400);
     }
 
-    return response()->json([
-        'success' => false,
-        'message' => 'Le client associé à cette commande n\'a pas d\'email.'
-    ], 400);
+    try {
+        Mail::to($customer->email)->send(new \App\Mail\OrderInvoiceMail($order));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Facture envoyée avec succès !'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de l\'envoi : ' . $e->getMessage()
+        ], 500);
+    }
 }
 public function downloadInvoice(Order $order)
 {
@@ -507,5 +511,23 @@ public function editO(Order $order)
 {
     return view('admin.orders.edit', compact('order'));
 }
+
+public function publicInvoice(Order $order, $hash)
+{
+    // Sécurisation simple
+    if ($hash !== sha1($order->email . $order->id)) {
+        abort(403);
+    }
+
+    $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT);
+
+    $pdf = Pdf::loadView('admin.invoices.invoice', [
+        'order' => $order,
+        'invoiceNumber' => $invoiceNumber
+    ]);
+
+    return $pdf->stream('facture_'.$invoiceNumber.'.pdf');
+}
+
 
 }

@@ -19,9 +19,9 @@
             </p>
         </div>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-primary" onclick="exportOrders()">
-                <i class="fas fa-download me-2"></i>Exporter
-            </button>
+            <button type="button" class="btn btn-outline-primary" onclick="window.location.href='{{ route('admin.orders.export') }}'">
+    <i class="fas fa-download me-2"></i>Exporter
+</button>
             <button type="button" class="btn btn-primary" onclick="showBulkActions()">
                 <i class="fas fa-tasks me-2"></i>Actions groupées
             </button>

@@ -339,7 +339,12 @@
 
         <!-- Footer -->
         <footer class="py-3 px-4 bg-white border-top text-center text-md-start">
-            <span class="text-muted small">© {{ date('Y') }} VCard Admin — Style Phoenix.</span>
+            <span class="text-muted small">
+                © {{ date('Y') }} DigitCard Admin — 
+                <a href="https://www.njiezm.fr" target="_blank" style="text-decoration: none">
+                    <span style="color:#003366;">NJIEZM</span><span style="color:#FFD700;">.FR</span>
+                </a>
+            </span>        
         </footer>
     </div>
 
