@@ -433,10 +433,9 @@ public function showOrder(Order $order)
 
 public function sendInvoice(Order $order)
 {
-    // On cherche le client par email
-    $customer = Customer::where('email', $order->email)->first();
+    $orderEmail = $order->email ?? $order->customer_email;
 
-    if (!$customer || !$customer->email) {
+    if (!$orderEmail) {
         return response()->json([
             'success' => false,
             'message' => 'Aucun email associé à cette commande.'
@@ -444,7 +443,7 @@ public function sendInvoice(Order $order)
     }
 
     try {
-        Mail::to($customer->email)->send(new \App\Mail\OrderInvoiceMail($order));
+        Mail::to($orderEmail)->send(new \App\Mail\OrderInvoiceMail($order));
 
         return response()->json([
             'success' => true,
@@ -459,9 +458,15 @@ public function sendInvoice(Order $order)
 }
 public function downloadInvoice(Order $order)
 {
-    // Exemple avec un PDF stocké ou généré à la volée
-    $pdf = \PDF::loadView('admin.invoices.invoice', compact('order')); // si tu utilises barryvdh/laravel-dompdf
-    return $pdf->download('facture_'.$order->id.'.pdf');
+    $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT);
+
+    $pdf = \PDF::loadView('admin.invoices.invoice', [
+        'order' => $order,
+        'invoiceNumber' => $invoiceNumber
+    ]);
+
+    // Ouvre dans le navigateur au lieu de forcer le téléchargement
+    return $pdf->stream('facture_'.$invoiceNumber.'.pdf');
 }
 
 public function bulkUpdateStatus(Request $request)

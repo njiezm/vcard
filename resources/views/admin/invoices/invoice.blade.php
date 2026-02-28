@@ -83,8 +83,8 @@
         <div style="text-align:right;">
             <strong>njiezm.fr</strong><br>
             {{ $isEnglish ? 'Sole Proprietorship' : 'Entreprise Individuelle' }}<br>
-            Email : njie@njiezm.fr<br>
-            SIRET : XXXXXXXX<br>
+            Email : contact@njiezm.fr<br>
+            SIRET : 99939612000019<br>
         </div>
     </div>
 
