@@ -456,6 +456,11 @@
                                                         <i class="fas fa-flag text-primary me-2"></i>Complétée
                                                     </a>
                                                 </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateOrderStatus({{ $order->id }}, 'cancelled')">
+                                                        <i class="fas fa-times text-danger me-2"></i>Annulée
+                                                    </a>
+                                                </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <a class="dropdown-item" href="#" onclick="sendInvoice({{ $order->id }})">
