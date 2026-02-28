@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Creer des Clients - Phoenix Admin')
+@section('title', 'Creer des Clients - Digitcard Admin')
 
 @push('styles')
     <style>

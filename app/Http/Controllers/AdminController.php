@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -369,19 +371,29 @@ public function updateOrder(Request $request, Order $order)
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        if ($request->email === 'njie@njiezm.fr' && $request->password === 'njiezm123') {
-            session(['admin_auth' => true]);
-            return redirect()->route('admin.index');
-        }
+    $email = $request->email;
 
-        return back()->with('error', 'Identifiants incorrects');
+    if ($email === 'njie@njiezm.fr' && $request->password === 'njiezm123') {
+
+        session(['admin_auth' => true]);
+
+        // ✅ WhatsApp succès
+        $this->sendLoginWhatsAppAlert($email, "SUCCES");
+
+        return redirect()->route('admin.index');
     }
+
+    // ❌ WhatsApp échec
+    $this->sendLoginWhatsAppAlert($email, "ECHEC");
+
+    return back()->with('error', 'Identifiants incorrects');
+}
 
     public function logout()
     {
@@ -592,5 +604,32 @@ public function publicInvoice(Order $order, $hash)
     return $pdf->stream('facture_'.$invoiceNumber.'.pdf');
 }
 
+private function sendLoginWhatsAppAlert($email, $status)
+{
+    try {
+
+        $ip = request()->ip();
+        $time = now()->format('d/m/Y H:i:s');
+        $userAgent = request()->userAgent();
+
+        $message = "*Tentative de connexion Admin*\n\n";
+        $message .= "Email : {$email}\n";
+        $message .= "Statut : {$status}\n";
+        $message .= "IP : {$ip}\n";
+        $message .= "Date : {$time}\n";
+
+        // Nettoyage accents (sécurité CallMeBot)
+        $message = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $message);
+
+        Http::get("https://api.callmebot.com/whatsapp.php", [
+            'phone'  => '596696703922',
+            'text'   => $message,
+            'apikey' => '9015420'
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Erreur WhatsApp login: ' . $e->getMessage());
+    }
+}
 
 }

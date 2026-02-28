@@ -46,6 +46,12 @@
             --phoenix-heading: #232e3e;
             --phoenix-sidebar-width: 250px;
             --phoenix-transition: all 0.2s ease-in-out;
+            --phoenix-card-bg: #ffffff;
+            --phoenix-hover-bg: rgba(0,0,0,0.03);
+            --phoenix-dropdown-bg: #ffffff;
+            --phoenix-input-bg: rgba(0,0,0,0.05);
+            --phoenix-footer-bg: #ffffff;
+            --phoenix-footer-text: #6c757d;
         }
 
         body {
@@ -63,6 +69,12 @@
             --phoenix-border-color: #334155;
             --phoenix-heading: #f1f5f9;
             --phoenix-text-muted: #94a3b8;
+            --phoenix-card-bg: #1e293b;
+            --phoenix-hover-bg: rgba(255,255,255,0.05);
+            --phoenix-dropdown-bg: #334155;
+            --phoenix-input-bg: rgba(255,255,255,0.1);
+            --phoenix-footer-bg: #1e293b;
+            --phoenix-footer-text: #94a3b8;
         }
 
         /* --- Sidebar Style Phoenix --- */
@@ -135,7 +147,7 @@
         }
 
         .nav-link:hover {
-            background-color: rgba(0,0,0,0.03);
+            background-color: var(--phoenix-hover-bg);
             color: var(--phoenix-heading);
         }
 
@@ -173,7 +185,7 @@
         }
 
         .search-box input {
-            background: rgba(0,0,0,0.05);
+            background: var(--phoenix-input-bg);
             border: none;
             border-radius: 20px;
             padding: 0.5rem 1rem 0.5rem 2.5rem;
@@ -216,6 +228,53 @@
             justify-content: center;
             font-weight: 600;
             cursor: pointer;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--phoenix-heading);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--phoenix-transition);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--phoenix-hover-bg);
+        }
+
+        /* Dark mode adjustments for dropdowns */
+        .dropdown-menu {
+            background-color: var(--phoenix-dropdown-bg);
+            border: 1px solid var(--phoenix-border-color);
+        }
+
+        .dropdown-item {
+            color: var(--phoenix-heading);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--phoenix-hover-bg);
+            color: var(--phoenix-heading);
+        }
+
+        /* Footer adjustments */
+        footer {
+            background-color: var(--phoenix-footer-bg) !important;
+            border-top: 1px solid var(--phoenix-border-color) !important;
+        }
+
+        footer span {
+            color: var(--phoenix-footer-text) !important;
+        }
+
+        /* Card adjustments for dark mode */
+        .card {
+            background-color: var(--phoenix-card-bg);
+            border: 1px solid var(--phoenix-border-color);
         }
 
         @media (max-width: 992px) {
@@ -301,6 +360,11 @@
             </div>
 
             <div class="d-flex align-items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="theme-toggle" aria-label="Basculer le thème">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+
                 <!-- Export Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-phoenix d-none d-sm-block dropdown-toggle" data-bs-toggle="dropdown">
@@ -338,8 +402,8 @@
         </main>
 
         <!-- Footer -->
-        <footer class="py-3 px-4 bg-white border-top text-center text-md-start">
-            <span class="text-muted small">
+        <footer class="py-3 px-4 border-top text-center text-md-start">
+            <span class="small">
                 © {{ date('Y') }} DigitCard Admin — 
                 <a href="https://www.njiezm.fr" target="_blank" style="text-decoration: none">
                     <span style="color:#003366;">NJIEZM</span><span style="color:#FFD700;">.FR</span>
@@ -366,7 +430,45 @@
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        // Gestion simplifiée du thème (compatible avec votre logique de cookie)
+        // Gestion du thème
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+        
+        // Vérifier le thème actuel au chargement
+        const currentTheme = getCookie('theme') || 'light';
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+        
+        // Gérer le clic sur le bouton de basculement
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            
+            if (document.body.classList.contains('dark-theme')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                setCookie('theme', 'dark', 365);
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                setCookie('theme', 'light', 365);
+            }
+        });
+        
+        // Fonctions pour gérer les cookies
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+        
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);

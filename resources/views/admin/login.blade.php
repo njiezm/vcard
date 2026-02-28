@@ -570,7 +570,7 @@
                 <div class="brand-logo">
                     <i class="fas fa-layer-group"></i>
                 </div>
-                <h1 class="brand-title">Phoenix Admin</h1>
+                <h1 class="brand-title">Digitcard Admin</h1>
                 <p class="brand-subtitle">Connectez-vous à votre espace</p>
             </div>
 
@@ -665,7 +665,7 @@
 
         <!-- Footer -->
         <div class="login-footer">
-            <p>&copy; {{ date('Y') }} Phoenix vCard. Tous droits réservés.</p>
+            <p>&copy; {{ date('Y') }} Digitcard vCard by NJIEZM.FR. Tous droits réservés.</p>
             <p>
                 Protégé par reCAPTCHA | 
                 <a href="#">Confidentialité</a> | 

@@ -8,11 +8,47 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str; // Import manquant
-use App\Models\Order; // Import manquant
+use Illuminate\Support\Str;
+use App\Models\Order;
 
 class PurchaseController extends Controller
 {
+    /**
+     * Envoyer une notification WhatsApp via CallMeBot
+     */
+ private function sendWhatsAppNotification($order, $customTitle = null)
+{
+    try {
+
+        $title = $customTitle ?? "Nouvelle commande creee";
+
+        $message = "*{$title}*\n\n";
+        $message .= "Commande : {$order->order_id}\n";
+        $message .= "Client : {$order->firstname} {$order->lastname}\n";
+        $message .= "Email : {$order->email}\n";
+        $message .= "Montant : {$order->amount} {$order->currency}\n";
+        $message .= "Paiement : {$order->payment_method}\n";
+        $message .= "Statut : {$order->status}";
+
+        // Nettoyage accents
+        $message = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $message);
+
+        $response = Http::get("https://api.callmebot.com/whatsapp.php", [
+            'phone'  => '596696703922',
+            'text'   => $message,
+            'apikey' => '9015420'
+        ]);
+
+        Log::info('Notification WhatsApp envoyee: ' . $response->body());
+
+        return $response->successful();
+
+    } catch (\Exception $e) {
+        Log::error('Erreur WhatsApp: ' . $e->getMessage());
+        return false;
+    }
+}
+
     /**
      * Affiche la page d'achat avec le choix du paiement.
      */
@@ -33,81 +69,82 @@ class PurchaseController extends Controller
     /**
      * Traite le formulaire d'achat et redirige vers la méthode de paiement choisie
      */
-/**
- * Traite le formulaire d'achat et redirige vers la méthode de paiement choisie
- */
-public function processPurchase(Request $request)
-{
-    // Validation des données reçues
-    $validated = $request->validate([
-        'firstname' => 'required|string|max:255',
-        'lastname' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'currency' => 'required|string|in:EUR,USD,GBP,CHF,CAD',
-        'amount' => 'required|numeric|min:0',
-        'payment_method' => 'required|string|in:bank_transfer,sumup,paypal',
-    ]);
-
-    // Définir les prix directement dans le contrôleur (plus sûr)
-    $prices = [
-        'EUR' => 29.99,
-        'USD' => 32.99,
-        'GBP' => 24.99,
-        'CHF' => 28.99,
-        'CAD' => 39.99
-    ];
-
-    // Mesure de sécurité : vérifier que le montant envoyé correspond au montant attendu
-    $expectedAmount = $prices[$validated['currency']] ?? 29.99;
-    if (abs($validated['amount'] - $expectedAmount) > 0.01) {
-        // Si les montants ne correspondent pas, on loggue l'alerte
-        Log::warning('Tentative de modification de montant détectée', [
-            'email' => $validated['email'],
-            'received_amount' => $validated['amount'],
-            'expected_amount' => $expectedAmount,
-            'currency' => $validated['currency']
+    public function processPurchase(Request $request)
+    {
+        // Validation des données reçues
+        $validated = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'currency' => 'required|string|in:EUR,USD,GBP,CHF,CAD',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:bank_transfer,sumup,paypal',
         ]);
-        // On utilise le montant attendu pour la commande
-        $finalAmount = $expectedAmount;
-    } else {
-        $finalAmount = $validated['amount'];
+
+        // Définir les prix directement dans le contrôleur (plus sûr)
+        $prices = [
+            'EUR' => 29.99,
+            'USD' => 32.99,
+            'GBP' => 24.99,
+            'CHF' => 28.99,
+            'CAD' => 39.99
+        ];
+
+        // Mesure de sécurité : vérifier que le montant envoyé correspond au montant attendu
+        $expectedAmount = $prices[$validated['currency']] ?? 29.99;
+        if (abs($validated['amount'] - $expectedAmount) > 0.01) {
+            // Si les montants ne correspondent pas, on loggue l'alerte
+            Log::warning('Tentative de modification de montant détectée', [
+                'email' => $validated['email'],
+                'received_amount' => $validated['amount'],
+                'expected_amount' => $expectedAmount,
+                'currency' => $validated['currency']
+            ]);
+            // On utilise le montant attendu pour la commande
+            $finalAmount = $expectedAmount;
+        } else {
+            $finalAmount = $validated['amount'];
+        }
+
+        try {
+            // Création de la commande en base de données
+            $order = Order::create([
+                'order_id' => 'ORD-' . strtoupper(uniqid()),
+                'firstname' => $validated['firstname'],
+                'lastname' => $validated['lastname'],
+                'email' => $validated['email'],
+                'amount' => $finalAmount,
+                'currency' => $validated['currency'],
+                'payment_method' => $validated['payment_method'],
+                'status' => 'pending',
+                'payment_details' => [], // Initialiser en tableau vide
+            ]);
+
+            // Envoyer une notification WhatsApp pour la nouvelle commande
+            $this->sendWhatsAppNotification($order);
+
+            // Stocker l'ID de la commande en session pour les étapes suivantes
+            session(['order_id' => $order->order_id]);
+
+            // Retourner une réponse JSON de succès
+            return response()->json([
+                'success' => true,
+                'order_id' => $order->order_id,
+                'redirect_url' => route('payment.' . $validated['payment_method'])
+            ]);
+
+        } catch (\Exception $e) {
+            // En cas d'erreur, on la loggue pour le débogage
+            Log::error('Erreur lors de la création de la commande : ' . $e->getMessage());
+            
+            // On retourne une réponse d'erreur JSON propre
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue. Veuillez réessayer.'
+            ], 500); // Code 500 pour erreur serveur
+        }
     }
 
-    try {
-        // Création de la commande en base de données
-        $order = Order::create([
-            'order_id' => 'ORD-' . strtoupper(uniqid()),
-            'firstname' => $validated['firstname'],
-            'lastname' => $validated['lastname'],
-            'email' => $validated['email'],
-            'amount' => $finalAmount,
-            'currency' => $validated['currency'],
-            'payment_method' => $validated['payment_method'],
-            'status' => 'pending',
-            'payment_details' => [], // Initialiser en tableau vide
-        ]);
-
-        // Stocker l'ID de la commande en session pour les étapes suivantes
-        session(['order_id' => $order->order_id]);
-
-        // Retourner une réponse JSON de succès
-        return response()->json([
-            'success' => true,
-            'order_id' => $order->order_id,
-            'redirect_url' => route('payment.' . $validated['payment_method'])
-        ]);
-
-    } catch (\Exception $e) {
-        // En cas d'erreur, on la loggue pour le débogage
-        Log::error('Erreur lors de la création de la commande : ' . $e->getMessage());
-        
-        // On retourne une réponse d'erreur JSON propre
-        return response()->json([
-            'success' => false,
-            'message' => 'Une erreur est survenue. Veuillez réessayer.'
-        ], 500); // Code 500 pour erreur serveur
-    }
-}
     /**
      * Affiche la page d'instructions pour le virement bancaire.
      */
@@ -143,6 +180,9 @@ public function processPurchase(Request $request)
             'confirmation_ip' => $request->ip()
         ]);
         $order->save();
+        
+        // Envoyer une notification WhatsApp pour la confirmation de virement
+        $this->sendWhatsAppNotification($order, "Confirmation de virement bancaire reçue pour la commande");
         
         // Envoyer un email de notification à l'administrateur
         // TODO: Implémenter l'envoi d'email
@@ -277,6 +317,9 @@ public function processPurchase(Request $request)
                 ]);
                 $order->save();
 
+                // Envoyer une notification WhatsApp pour le paiement réussi
+                $this->sendWhatsAppNotification($order, "Paiement SumUp réussi pour la commande");
+
                 session()->forget('sumup_checkout_reference');
 
                 return response()->json(['status' => 'success', 'redirect' => route('purchase.success')]);
@@ -364,6 +407,9 @@ public function processPurchase(Request $request)
                 'paid_at' => now()->toISOString()
             ]);
             $order->save();
+
+            // Envoyer une notification WhatsApp pour le paiement PayPal réussi
+            $this->sendWhatsAppNotification($order, "Paiement PayPal réussi pour la commande");
 
             return response()->json(['status' => 'success', 'redirect' => route('purchase.success')]);
         }
