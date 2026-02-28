@@ -674,7 +674,7 @@
                             @if($customer->photo)
                                 <img src="{{ asset('storage/' . $customer->photo) }}" 
                                      alt="Photo actuelle" 
-                                     class="photo-preview" 
+                                     class="img-fluid photo-preview" 
                                      id="currentPhoto">
                             @else
                                 <div class="photo-placeholder">
