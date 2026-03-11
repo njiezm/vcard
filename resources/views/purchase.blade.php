@@ -600,8 +600,8 @@
                     </div>
                 </div>
 
-                <h2 class="font-outfit text-2xl font-bold mb-4">Votre carte d'identité numérique</h2>
-                <p class="text-slate-400 mb-6">Obtenez instantanément votre carte d'identité numérique sécurisée et vérifiée.</p>
+                <h2 class="font-outfit text-2xl font-bold mb-4">Votre carte de visite numérique</h2>
+                <p class="text-slate-400 mb-6">Obtenez instantanément votre carte de visite numérique sécurisée et vérifiée.</p>
 
                 <ul class="features-list">
                     <li class="feature-item">
