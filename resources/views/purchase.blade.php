@@ -564,6 +564,46 @@
     animation: spin 0.8s linear infinite;
     z-index: 11;
 }
+
+/* Animation de la carte pour attirer l'oeil */
+.digitcard-preview {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease;
+}
+
+/* On change l'animation de pulse par un flottement léger */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotateX(0deg); }
+    50% { transform: translateY(-10px) rotateX(2deg); }
+}
+
+.digitcard-preview {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Rendre les icônes de la carte plus jolies */
+.vcard-chip {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.vcard-chip:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.phone-screen {
+    display: flex;
+    flex-direction: column; /* <-- ici on empile verticalement */
+    align-items: center;
+    justify-content: flex-start; /* ou center si tu veux centrer verticalement */
+    position: relative;
+    overflow: hidden;
+}
     </style>
 </head>
 <body>
@@ -588,15 +628,77 @@
             <div class="product-showcase">
                 <div class="phone-mockup">
                     <div class="phone-frame">
-                        <div class="phone-screen">
-                            <div class="digitcard-preview">
-                                <div class="text-center">
-                                    <i class="fas fa-id-card text-4xl text-white mb-2"></i>
-                                    <div class="text-white font-bold text-sm">DIGITCARD</div>
-                                    <div class="text-white/80 text-xs">ELITE</div>
-                                </div>
-                            </div>
-                        </div>
+                        
+                    <div class="phone-screen">
+    
+    <!-- Dynamic island -->
+    <div class="w-20 h-5 bg-black rounded-b-xl mx-auto mt-2 mb-4"></div>
+
+    <!-- Header -->
+    <div class="h-24 bg-gradient-to-br from-slate-800 to-slate-900"></div>
+
+    <!-- Card -->
+    <div class="mx-4 -mt-12 bg-slate-800/80 backdrop-blur rounded-2xl border border-white/10 p-4 text-center">
+
+        <div class="w-16 h-16 mx-auto rounded-xl bg-indigo-500 flex items-center justify-center text-white font-bold text-lg border-4 border-slate-900">
+            JD
+        </div>
+
+        <p class="text-sm font-bold mt-2 vcard-name">Jean Dupont</p>
+        <p class="text-[11px] text-slate-400">Directeur Commercial</p>
+
+        <div class="flex justify-center gap-2 mt-3 border-t border-white/10 pt-3">
+
+            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400">
+                <i class="fab fa-linkedin-in text-xs"></i>
+            </div>
+
+            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-pink-400">
+                <i class="fab fa-instagram text-xs"></i>
+            </div>
+
+            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white">
+                <i class="fab fa-x-twitter text-xs"></i>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Contact Blocks -->
+    <div class="mt-4 px-4 space-y-2">
+
+        <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                <i class="fas fa-phone text-xs"></i>
+            </div>
+            <div class="h-1.5 w-24 bg-slate-600 rounded"></div>
+        </div>
+
+        <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-2">
+    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+        <i class="fas fa-envelope text-xs"></i>
+    </div>
+    <!-- Ici on met le texte dynamique au lieu du trait -->
+    <p class="text-[11px] text-slate-400 vcard-email">jean.dupont@example.com</p>
+</div>
+
+        <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                <i class="fas fa-globe text-xs"></i>
+            </div>
+            <div class="h-1.5 w-20 bg-slate-600 rounded"></div>
+        </div>
+
+    </div>
+
+    <!-- CTA button -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-10 bg-indigo-600 rounded-xl flex items-center justify-center gap-2">
+        <div class="w-3 h-3 bg-white/20 rounded-full"></div>
+        <div class="w-12 h-1.5 bg-white/40 rounded"></div>
+    </div>
+
+</div>
                     </div>
                 </div>
 
@@ -883,6 +985,42 @@ function submitFormAndRedirect(method) {
                 this.style.transform = '';
             });
         });
+
+    // Sélection des inputs et des éléments d'affichage
+const firstnameInput = document.getElementById('firstname');
+const lastnameInput = document.getElementById('lastname');
+const emailInput = document.getElementById('email');
+
+const nameDisplay = document.querySelector('.vcard-name');
+const emailDisplay = document.querySelector('.vcard-email');
+
+// Fonction pour mettre à jour le nom complet
+function updateName() {
+    const firstname = firstnameInput.value.trim();
+    const lastname = lastnameInput.value.trim();
+    if (firstname || lastname) {
+        nameDisplay.textContent = `${firstname} ${lastname}`.trim();
+    } else {
+        nameDisplay.textContent = "Jean Dupont"; // valeur par défaut
+    }
+}
+
+// Fonction pour mettre à jour l'email
+function updateEmail() {
+    const email = emailInput.value.trim();
+    emailDisplay.textContent = email || "jean.dupont@example.com"; // valeur par défaut
+}
+
+// Écouteurs d'événements pour inputs
+firstnameInput.addEventListener('input', updateName);
+lastnameInput.addEventListener('input', updateName);
+emailInput.addEventListener('input', updateEmail);
+
+// Initialisation au chargement de la page
+window.addEventListener('DOMContentLoaded', () => {
+    updateName();
+    updateEmail();
+});
     </script>
 </body>
 </html>
